@@ -7,12 +7,10 @@
 #include <algorithm>
 using namespace std;
 
-
 #define OK 1
-#define INPUT_ERROR -1
-#define OUTPUT_ERROR -2
-typedef int Status;
+#define ERROR -1
 
+typedef int Status;
 class LEX
 {
 public:
@@ -25,9 +23,12 @@ private:
 	ofstream outfile;					//输出文件
 	string file_str;					//文件内容转成的字符串
 	int	idx;							//字符串的指针
-	int state;							//状态
-	unordered_map<string, int> Stable;	//标识符表
-
+	int id_code;						//标识符编号
+	int num_code;						//数的编号
+	int state;							//DFA状态
+	
+	//标识符表
+	unordered_map<string, int> Stable;		
 	//一元算符表
 	//{ '+','-','*','/','<','>','=',';',',','(',')','{','}', '!' };	
 	unordered_map<char, string> UnaryOP =
@@ -36,10 +37,9 @@ private:
 		{'=',"ASSIGN"},{';',"DEL"},{',',"SEP"},
 		{'(',"LP"},{')',"RP"},{'{',"LB"},
 		{'}',"RB"}, {'!',"RELOP"} };				
-			
+	//保留字表
 	unordered_map<string, string> ReserveWord =
-	{ {"int","0"}, {"void","1"}, {"while","2"}, {"if","3"}, {"else","4"}, {"return","5"} };		//保留字表
-	//{ {"int",0}, {"void",1}, {"while",2}, {"if",3}, {"else",4}, {"return",5} }
+	{ {"int","0"}, {"void","1"}, {"while","2"}, {"if","3"}, {"else","4"}, {"return","5"} };		
 	unordered_map<string, string> strOP =
 	{ {"<=","0"},{"!=","1"},{"==","2"},{">=","3"} };			//字符运算符表
 /*	typedef enum {
@@ -65,13 +65,12 @@ private:
 	}tokenType;				//记号类型*/
 
 	/**************************成员函数***************************/
-	void read_file_to_str(string &str);//文件读取到字符串
-	Status strPrint(const string& type, const string &tmp);				//输出
+	void read_file_to_str(string& str);//文件读取到字符串
+	Status strPrint(const string& type, const string& value);				//输出
 	Status unaryPrint(const char& ch, const string& type);
 	bool isUnaryOperator(char ch);					//是否为一元运算符(未考虑多元)
 	bool isLiter(char ch);							//是否为字母或下划线(_)
 	unordered_map<string, string>::iterator isReserveWord(string id);					//是否为保留字
-
 	Status Delcomment();
 	Status Number();
 	Status Operator();

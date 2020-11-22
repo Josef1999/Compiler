@@ -3,12 +3,15 @@
 /***************************************************************************
   函数名称：void LEX::read_file_to_str(string &str)
   功    能：读取文件到字符串
-  输入参数：string &str：返回的字符串的引用
-  返 回 值：str
-  说    明：读入文件内容，存入str字符串内
+  输入参数：
+			string &str：返回的字符串的引用
+			const string &file_name：读入文件名
+  返 回 值：
+  说    明：
 ***************************************************************************/
-void LEX::read_file_to_str(string &str)
+void LEX::read_file_to_str(string& str)
 {
+	//ifstream in(file_name);
 	ostringstream tmp;
 	tmp << infile.rdbuf();
 	str = tmp.str();
@@ -19,85 +22,112 @@ void LEX::read_file_to_str(string &str)
 /***************************************************************************
   函数名称：LEX::LEX()
   功    能：构造函数
-  输入参数：无
-  返 回 值：无
-  说    明：初始化
-***************************************************************************/
-LEX::LEX()
-{
-	idx = 0;
-	state = 0;
-}
-
-
-/***************************************************************************
-  函数名称：Status LEX::strPrint(const string& type,const string &tmp)
-  功    能：输出字符串解释结果
-  输入参数：const string& type：字符串标识的种类
-			const string &value:字符串的属性值
-  返 回 值：状态
-  说    明：
-***************************************************************************/
-Status LEX::strPrint(const string& type,const string &value)
-{
-	string s = type;
-	//全转大写
-	transform(s.begin(), s.end(), s.begin(), ::toupper);
-	if (s == "ID"&&Stable.count(value)==0) {
-		Stable[value]=INT_MIN;
-	}
-	outfile << "<" << s << "," << value << ">" << endl;
-	return OK;
-}
-
-
-/***************************************************************************
-  函数名称：Status LEX::unaryPrint(const char& ch, const string& type,unordered_map<char,string>::iterator it)
-  功    能：输出一元算符解释结果
   输入参数：
   返 回 值：
   说    明：
 ***************************************************************************/
-Status LEX::unaryPrint(const char& ch, const string& type)
-{	char unary;
-	switch(ch)
-	{
-		case '+':
-			unary = '0';
-			break;
-		case '-':
-			unary = '1';
-			break;
-		case '*':
-			unary = '0';
-			break;
-		case '/':
-			unary = '1';
-			break;
-		case '<':
-			unary = '0';
-			break;
-		case '>':
-			unary = '4';
-			break;
-		default:
-			unary = '-';
-			break;
+LEX::LEX()
+{
+	idx = 0;				//文件字符串指针
+	state = 0;				//DFA初始状态，用来分析字符串
+	id_code = 0;			//标识符(ID)的编码
+}
+
+/***************************************************************************
+  函数名称：LEX::~LEX()
+  功    能：析构函数
+  输入参数：
+  返 回 值：
+  说    明：
+***************************************************************************/
+LEX::~LEX()
+{}
+
+
+/***************************************************************************
+  函数名称：Status LEX::strPrint(const string& type,const string &value)
+  功    能：输出字符串解释结果
+  输入参数：
+			const string& type：字符串标识的种类
+			const string &value:字符串的属性值
+  返 回 值：
+  说    明：
+***************************************************************************/
+Status LEX::strPrint(const string& type, const string& value)
+{
+	string s = type;											//临时变量存储type，用来把type转换成大写形式
+	transform(s.begin(), s.end(), s.begin(), ::toupper);		//转换函数
+	if (s == "ID") {											//type是标识符，如果已存在于Stable中则输出其编号，
+		if (Stable.count(value) == 0) {							//如果不在则加入Stable中，id_code+1
+			Stable[value] = id_code;
+			id_code++;
+		}
+		outfile << "<" << s << "," << id_code << ">" << endl;
+		//cout << "<" << s << "," << Stable[value] << ">" << endl;
+
+		return OK;
 	}
-	outfile << "<" << type << "," << unary << ">" << endl;
+	if (s == "NUM") {											//用num_code记录NUM的编号
+
+		outfile << "<" << s << "," << value << ">" << endl;
+		//cout << "<" << s << "," << value << ">" << endl;
+		return OK;
+	}
+	
+}
+
+
+/***************************************************************************
+  函数名称：Status LEX::unaryPrint(const char& ch, const string& type)
+  功    能：输出一元算符解释结果
+  输入参数：
+			const char& ch:一元运算的字符
+			const string& type：该字符类型
+  返 回 值：
+  说    明：
+***************************************************************************/
+Status LEX::unaryPrint(const char& ch, const string& type)
+{
+	char unary_code;	//一元运算符的编码符号
+	switch (ch)
+	{
+	case '+':
+		unary_code = '0';
+		break;
+	case '-':
+		unary_code = '1';
+		break;
+	case '*':
+		unary_code = '0';
+		break;
+	case '/':
+		unary_code = '1';
+		break;
+	case '<':
+		unary_code = '0';
+		break;
+	case '>':
+		unary_code = '4';
+		break;
+	default:
+		unary_code = '-';
+		break;
+	}
+	outfile << "<" << type << "," << unary_code << ">" << endl;
+	//cout << "<" << type << "," << unary_code << ">" << endl;
 	return OK;
 }
 
 /***************************************************************************
   函数名称：bool LEX::isUnaryOperator(char ch)
   功    能：判断字符是否为一元算符
-  输入参数：ch：字符
-  返 回 值：bool
+  输入参数：
+  返 回 值：
   说    明：
 ***************************************************************************/
 bool LEX::isUnaryOperator(char ch)
 {
-	if (UnaryOP.find(ch)!=UnaryOP.end()) {
+	if (UnaryOP.find(ch) != UnaryOP.end()) {
 		return true;
 	}
 	return false;
@@ -112,7 +142,7 @@ bool LEX::isUnaryOperator(char ch)
 ***************************************************************************/
 bool LEX::isLiter(char ch)
 {
-	if (isalpha(ch)||ch=='_') {
+	if (isalpha(ch) || ch == '_') {
 		return true;
 	}
 	return false;
@@ -121,9 +151,13 @@ bool LEX::isLiter(char ch)
 
 /***************************************************************************
   函数名称：unordered_map<string, string>::iterator LEX::isReserveWord(string id)
-  功    能：判断字符是否为一元算符
+  功    能：判断字符是否为保留字
   输入参数：
+			string id:标识符名称
   返 回 值：
+			成功在ReserveWord表中找到时，返回unordered_map类型的iterator，指向标识符id，
+			失败返回ReserveWord.end();
+
   说    明：
 ***************************************************************************/
 unordered_map<string, string>::iterator LEX::isReserveWord(string id)
@@ -139,79 +173,56 @@ unordered_map<string, string>::iterator LEX::isReserveWord(string id)
   函数名称：Status LEX::Delcomment()
   功    能：删除注释
   输入参数：
-  返 回 值：
-			返回状态1或者状态4说明成功到达终态
+  返 回 值：OK/ERROR
+			
   说    明：
 ***************************************************************************/
 Status LEX::Delcomment()
 {
-	//int begin = idx;//注释开始位置
-	/*
-	q0输入'/'到q1,接收状态
-	q0输入'*'到q2，再输入'*'到q3，q3输入'/'到终态q4，输入其他到q2。
-	*/
-	idx++;//已经读到了一个/
-	while (file_str[idx]) {
-		switch (state)
-		{
-			case 0:
-				if (file_str[idx] == '/') {//到q1
-					state = 1;
-				}
-				else if (file_str[idx] == '*') {//到q2
-					state = 2;
-				}
-				else {			//语法错误，返回状态值
-					idx -= 2;
-					return state;
-				}
-				idx++;
-				break;
-			case 1:
-				return state;//返回接收状态
-			case 2:
-				if (file_str[idx] == '*') {			//多行注释/**/语法，开始寻找"*/"
-					state = 3;
-				}
-				idx++;
-				break;
-			case 3:
-				if (file_str[idx] == '/') {			//找到*/，注释结束
-					state = 4;
-				}
-				else {
-					state = 2;						//只有*无/，*无效，返回到q3
-				}
-				idx++;
-			case 4:
-				return state;
-			default:
-				break;
-		}
+	//idx指向首个'/'
+	if (file_str[idx + 1] == '/')
+	{
+		while (file_str[idx] != '\n')
+			idx++;
+		idx--;
+		return OK;
 	}
-	return state;
+	else
+	{
+		int idx_ = idx;
+		while (!(file_str[idx_] == '*' && file_str[idx_ + 1] == '/'))
+		{
+			idx_++;
+			if (idx_ + 1 > file_str.length())
+				return ERROR;
+
+		}
+		idx = idx_+1;
+		return OK;
+
+	}
 }
 
 /***************************************************************************
   函数名称：Status LEX::Number()
   功    能：读数字
-  输入参数：无
-  返 回 值：无
-			
-  说    明：读入一个数字
+  输入参数：
+  返 回 值：
+
+  说    明：
 ***************************************************************************/
 Status LEX::Number()
 {
-	int begin = idx;//标记开始位置
+	int begin = idx;//注释开始位置
 	idx++;
 	while (file_str[idx]) {
 		if (isdigit(file_str[idx])) {
 			idx++;
 		}
 		else {
-			string num = file_str.substr(begin, idx - begin);
-			idx--;//在bufferscanner中有前进，故需后退，确保不漏字符
-			return strPrint("NUM", num);
+			string tmp = file_str.substr(begin, idx - begin);
+			idx--;					//读到非数字后退
+			return strPrint("NUM", tmp);
 		}
 	}
 	return 0;
@@ -228,76 +239,78 @@ Status LEX::Operator()
 {
 	auto search = UnaryOP.find(file_str[idx]);
 	if (search == UnaryOP.end()) {
-		return 0;//符号出错
+		return 0;					//符号出错
 	}
-	char ch = search->first;//只有第一次有用
+	char ch = search->first;		//只有第一次有用，用来处理+-*/;,(){}这些符号
 	while (file_str[idx]) {
 		//search = UnaryOP.find(file_str[idx]); 	
-		//第二次是这些怎么办？
-		if (ch == '+' || ch == '-'||ch=='*'||ch=='/'||ch==';' || ch == ',' 
-			|| ch == '(' || ch ==')' || ch == '{' || ch == '}') {
+		if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == ';' || ch == ','
+			|| ch == '(' || ch == ')' || ch == '{' || ch == '}') {
 			//state = 1;
 			return unaryPrint(search->first, search->second);
 		}
 		else {
-			ch = file_str[idx];
-			int begin = idx;
-			switch(state)
+			ch = file_str[idx];					//非上述符号，第二种情况
+			//int begin = idx;
+			switch (state)
 			{
-				case 0:
-					switch(ch)
-					{
-						case '<':
-							state = 2;
-							break;
-						case '>':
-							state = 4;
-							break;
-						case '=':
-							state = 6;
-							break;
-						case '!':
-							state = 8;
-							break;
-						default:
-							break;
-					}
+			case 0:
+				switch (ch)
+				{
+				case '<':
+					state = 2;
 					break;
-				case 2:
-					if (ch == '=') {//<=
-						state = 3;
-						return strPrint("RELOP","0");
-					}
-					else {		//<
-						return unaryPrint('<',"RELOP");
-					}
+				case '>':
+					state = 4;
 					break;
-				case 4:
-					if (ch == '=') {//>=
-						state = 5;
-						return strPrint("RELOP", "3");
-					}
-					else {//>
-						return unaryPrint('>', "RELOP");
-					}
+				case '=':
+					state = 6;
 					break;
-				case 6:
-					if (ch == '='){	//==
-						state = 7;
-						return strPrint("RELOP", "2");
-					}
-					else {
-						return unaryPrint('=', "ASSIGN");
-					}
-					break;
-				case 8:
-					if (ch == '=') {	//!=
-						state = 9;
-						return strPrint("RELOP", "1");
-					}
+				case '!':
+					state = 8;
 					break;
 				default:
 					break;
+				}
+				break;
+			case 2:
+				if (ch == '=') {//<=
+					state = 3;
+					return strPrint("RELOP", "0");
+				}
+				else {		//<
+					idx--;
+					return unaryPrint('<', "RELOP");
+				}
+				break;
+			case 4:
+				if (ch == '=') {//>=
+					state = 5;
+					return strPrint("RELOP", "3");
+				}
+				else {				//>
+					idx--;
+					return unaryPrint('>', "RELOP");
+				}
+				break;
+			case 6:
+				if (ch == '=') {	//==
+					state = 7;
+					return strPrint("RELOP", "2");
+				}
+				else {			//=
+					idx--;
+					return unaryPrint('=', "ASSIGN");
+				}
+				break;
+			case 8:
+				if (ch == '=') {	//!=
+					state = 9;
+					return strPrint("RELOP", "1");
+				}
+				break;
+			default:
+				break;
 			}
 		}
 		idx++;
@@ -322,11 +335,11 @@ Status LEX::Identifier()
 			idx++;
 		}
 		else {		//其他字符
-			string temp = file_str.substr(begin, idx - begin);//提取出标识符
-			unordered_map<string, string>::iterator it= isReserveWord(temp);
-
-			if (it!=ReserveWord.end()) {		//是保留字
-				return strPrint(it->first,it->second);
+			temp = file_str.substr(begin, idx - begin);//提取出标识符
+			unordered_map<string, string>::iterator it = isReserveWord(temp);
+			idx--;
+			if (it != ReserveWord.end()) {		//是保留字
+				return strPrint(it->first, it->second);
 			}
 			else {
 				return strPrint("ID", temp);
@@ -340,35 +353,34 @@ Status LEX::Identifier()
 /***************************************************************************
   函数名称：Status LEX::bufferScanner()
   功    能：分析字符串
-  输入参数：无
-  返 回 值：状态（OK，INPUT_ERROR，OUTPUT_ERROR）
-  说    明：首先读取文件内容，
+  输入参数：
+  返 回 值：
+  说    明：
 ***************************************************************************/
 Status LEX::bufferScanner()
 {
-	read_file_to_str(this->file_str);
-	while (this->file_str[idx] && !state) {		//字符串未结束并且DFA是开始状态
-		//跳过空格、tab
-		//换行
-		if (file_str[idx] == '\n') {
-			
-			strPrint("NL","-");
-			state=0;//单次分析结束,可以写在if分支以外
+	read_file_to_str(file_str);
+	while (file_str[idx] && !state) {		//字符串未结束并且DFA是开始状态
+		if (file_str[idx] == ' ' || file_str[idx] == '\t' || file_str[idx] == '\r') {
+			;//空格、TAB、回车，不做处理跳过。
 		}
-		//去除注释
-		else if (file_str[idx] == '/' && (file_str[idx+1] == '/'|| file_str[idx] == '*')) {
+		else if (file_str[idx] == '\n') {
+			//换行
+			strPrint("NL", "-");
+			state = 0;//单次分析结束,可以写在if分支以外
+		}
+		else if (file_str[idx] == '/') {
+			//因为是开始状态，所以一定是注释
 			Delcomment();//这时的state能反应结束状态是否是接受态(1,4)
-			state=0;
+			state = 0;
 		}
-		//数字
 		else if (isdigit(file_str[idx])) {
-			
+			//数字
 			Number();
-			state=0;
+			state = 0;
 		}
-		//一元运算符
 		else if (isUnaryOperator(file_str[idx])) {
-
+			//一元运算符
 			Operator();
 			state = 0;
 		}
@@ -389,31 +401,28 @@ Status LEX::bufferScanner()
 
 /***************************************************************************
   函数名称：Status LEX::analyse(const string file_name,const string outfile_name)
-  功    能：词法分析器主函数，输出词法分析结果
-  输入参数：file_name:		输入文件名, 
-			outfile_name:	输出文件名
-  返 回 值：状态（OK，INPUT_ERROR，OUTPUT_ERROR）
-  说    明：打开输入输出文件后进行词法分析，最终将结果输出在文件内
+  功    能：分析字符串
+  输入参数：
+  返 回 值：
+  说    明：
 ***************************************************************************/
 Status LEX::analyse(const string& infile_name, const string& outfile_name)
 {
 	//判断文件是否打开
 	infile.open(infile_name, ios::in);
-	if (infile.is_open() == 0)
-		return INPUT_ERROR;
-
 	outfile.open(outfile_name, ios::out);
-	if (outfile.is_open() == 0)
-	{
-		infile.close();
-		return OUTPUT_ERROR;
+	if (infile.is_open() == 0) {
+		return -1;//状态
 	}
-
+	if (outfile.is_open() == 0) {
+		infile.close();
+		return -2;//状态
+	}
 	bufferScanner();//输入缓冲区
-
-	/*输出标识符表*/
-	for (auto search = Stable.begin(); search != Stable.end(); search++) {
-		outfile << search->first<< endl;
+	/*输出表*/
+	auto search = Stable.begin();
+	for (; search != Stable.end(); search++) {
+		outfile << "<" << search->first << "," << search->second << ">" << endl;
 	}
 	infile.close();
 	outfile.close();
