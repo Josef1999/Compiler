@@ -31,6 +31,7 @@ LEX::LEX()
 	idx = 0;				//文件字符串指针
 	state = 0;				//DFA初始状态，用来分析字符串
 	id_code = 0;			//标识符(ID)的编码
+	num_code = 0;			//数字(NUM)的编码
 }
 
 /***************************************************************************
@@ -41,7 +42,9 @@ LEX::LEX()
   说    明：
 ***************************************************************************/
 LEX::~LEX()
-{}
+{
+	;
+}
 
 
 /***************************************************************************
@@ -68,12 +71,13 @@ Status LEX::strPrint(const string& type, const string& value)
 		return OK;
 	}
 	if (s == "NUM") {											//用num_code记录NUM的编号
-
-		outfile << "<" << s << "," << value << ">" << endl;
-		//cout << "<" << s << "," << value << ">" << endl;
-		return OK;
+		outfile << "<" << s << "," << num_code << ">" << endl;
+		//cout << "<" << s << "," << num_code << ">" << endl;
+		num_code++;
 	}
-	
+	outfile << "<" << s << "," << value << ">" << endl;
+	//cout << "<" << s << "," << value << ">" << endl;
+	return OK;
 }
 
 
@@ -173,8 +177,8 @@ unordered_map<string, string>::iterator LEX::isReserveWord(string id)
   函数名称：Status LEX::Delcomment()
   功    能：删除注释
   输入参数：
-  返 回 值：OK/ERROR
-			
+  返 回 值：
+			返回状态1或者状态4说明成功到达终态
   说    明：
 ***************************************************************************/
 Status LEX::Delcomment()
@@ -197,7 +201,7 @@ Status LEX::Delcomment()
 				return ERROR;
 
 		}
-		idx = idx_+1;
+		idx = idx_ + 1;
 		return OK;
 
 	}
@@ -360,32 +364,36 @@ Status LEX::Identifier()
 Status LEX::bufferScanner()
 {
 	read_file_to_str(file_str);
-	while (file_str[idx] && !state) {		//字符串未结束并且DFA是开始状态
-		if (file_str[idx] == ' ' || file_str[idx] == '\t' || file_str[idx] == '\r') {
-			;//空格、TAB、回车，不做处理跳过。
-		}
-		else if (file_str[idx] == '\n') {
-			//换行
+	while (file_str[idx] && !state) {
+		//空格、TAB跳过
+
+		//换行
+		if (file_str[idx] == '\n') {
+
 			strPrint("NL", "-");
-			state = 0;//单次分析结束,可以写在if分支以外
+			state = 0;
 		}
+		//忽略注释
 		else if (file_str[idx] == '/') {
-			//因为是开始状态，所以一定是注释
+
 			Delcomment();//这时的state能反应结束状态是否是接受态(1,4)
 			state = 0;
 		}
+		//数字
 		else if (isdigit(file_str[idx])) {
-			//数字
+
 			Number();
 			state = 0;
 		}
+		//一元运算符
 		else if (isUnaryOperator(file_str[idx])) {
-			//一元运算符
+
 			Operator();
 			state = 0;
 		}
+		//标识符
 		else if (isLiter(file_str[idx])) {
-			//标识符
+
 			Identifier();
 			state = 0;
 		}
@@ -412,16 +420,17 @@ Status LEX::analyse(const string& infile_name, const string& outfile_name)
 	infile.open(infile_name, ios::in);
 	outfile.open(outfile_name, ios::out);
 	if (infile.is_open() == 0) {
-		return -1;//状态
+		return ERROR;
 	}
 	if (outfile.is_open() == 0) {
 		infile.close();
-		return -2;//状态
+		return ERROR;
 	}
-	bufferScanner();//输入缓冲区
-	/*输出表*/
-	auto search = Stable.begin();
-	for (; search != Stable.end(); search++) {
+
+	bufferScanner();
+
+	/*输出标识符表*/
+	for (auto search = Stable.begin(); search != Stable.end(); search++) {
 		outfile << "<" << search->first << "," << search->second << ">" << endl;
 	}
 	infile.close();
