@@ -34,18 +34,19 @@ LEX::LEX()
   函数名称：Status LEX::strPrint(const string& type,const string &tmp)
   功    能：输出字符串解释结果
   输入参数：const string& type：字符串标识的种类
-			const string &tmp:字符串的属性值
+			const string &value:字符串的属性值
   返 回 值：状态
   说    明：
 ***************************************************************************/
-Status LEX::strPrint(const string& type,const string &tmp)
+Status LEX::strPrint(const string& type,const string &value)
 {
 	string s = type;
+	//全转大写
 	transform(s.begin(), s.end(), s.begin(), ::toupper);
-	if (s == "ID"&&Stable.count(tmp)==0) {
-		Stable[tmp]=INT_MIN;
+	if (s == "ID"&&Stable.count(value)==0) {
+		Stable[value]=INT_MIN;
 	}
-	outfile << "<" << s << "," << tmp << ">" << endl;
+	outfile << "<" << s << "," << value << ">" << endl;
 	return OK;
 }
 
@@ -90,8 +91,8 @@ Status LEX::unaryPrint(const char& ch, const string& type)
 /***************************************************************************
   函数名称：bool LEX::isUnaryOperator(char ch)
   功    能：判断字符是否为一元算符
-  输入参数：
-  返 回 值：
+  输入参数：ch：字符
+  返 回 值：bool
   说    明：
 ***************************************************************************/
 bool LEX::isUnaryOperator(char ch)
@@ -161,6 +162,7 @@ Status LEX::Delcomment()
 					state = 2;
 				}
 				else {			//语法错误，返回状态值
+					idx -= 2;
 					return state;
 				}
 				idx++;
@@ -193,23 +195,23 @@ Status LEX::Delcomment()
 /***************************************************************************
   函数名称：Status LEX::Number()
   功    能：读数字
-  输入参数：
-  返 回 值：
+  输入参数：无
+  返 回 值：无
 			
-  说    明：
+  说    明：读入一个数字
 ***************************************************************************/
 Status LEX::Number()
 {
-	int begin = idx;//注释开始位置
+	int begin = idx;//标记开始位置
 	idx++;
 	while (file_str[idx]) {
 		if (isdigit(file_str[idx])) {
 			idx++;
 		}
 		else {
-			string tmp = file_str.substr(begin, idx - begin);
-			idx--;//读到非数字后退
-			return strPrint("NUM", tmp);
+			string num = file_str.substr(begin, idx - begin);
+			idx--;//在bufferscanner中有前进，故需后退，确保不漏字符
+			return strPrint("NUM", num);
 		}
 	}
 	return 0;
@@ -346,26 +348,27 @@ Status LEX::bufferScanner()
 {
 	read_file_to_str(this->file_str);
 	while (this->file_str[idx] && !state) {		//字符串未结束并且DFA是开始状态
-		if (this->file_str[idx] == ' ' || this->file_str[idx] == '\t' || this->file_str[idx] == '\r' ) {
-			;//空格、TAB、回车，不做处理跳过。
-		}
-		else if (file_str[idx] == '\n') {
-			//换行
+		//跳过空格、tab
+		//换行
+		if (file_str[idx] == '\n') {
+			
 			strPrint("NL","-");
 			state=0;//单次分析结束,可以写在if分支以外
 		}
-		else if (file_str[idx] == '/') {
-			//因为是开始状态，所以一定是注释
+		//去除注释
+		else if (file_str[idx] == '/' && (file_str[idx+1] == '/'|| file_str[idx] == '*')) {
 			Delcomment();//这时的state能反应结束状态是否是接受态(1,4)
 			state=0;
 		}
+		//数字
 		else if (isdigit(file_str[idx])) {
-			//数字
+			
 			Number();
 			state=0;
 		}
+		//一元运算符
 		else if (isUnaryOperator(file_str[idx])) {
-			//一元运算符
+
 			Operator();
 			state = 0;
 		}
