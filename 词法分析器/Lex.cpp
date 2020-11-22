@@ -182,53 +182,26 @@ unordered_map<string, string>::iterator LEX::isReserveWord(string id)
 ***************************************************************************/
 Status LEX::Delcomment()
 {
-	//int begin = idx;//注释开始位置
-	/*
-	q0输入'/'到q1,接收状态
-	q0输入'*'到q2，再输入'*'到q3，q3输入'/'到终态q4，输入其他到q2。
-	*/
-	idx++;					//已经读到了一个/
-	while (file_str[idx]) {
-		switch (state)
-		{
-			case 0:
-				if (file_str[idx] == '/') {		//到q1态
-					state = 1;
-				}
-				else if (file_str[idx] == '*') {//到q2态
-					state = 2;
-				}
-				else {
-					idx--;						//非注释，回退
-					return state;
-				}
-				idx++;
-				break;
-			case 1:									//接受态(//)
-				idx--;								//非注释，回退
-				return state;						//返回接收状态
-			case 2:
-				if (file_str[idx] == '*') {			//以换行符做结束符，/* 以*/为结束符，到q3态
-					state = 3;
-				}
-				idx++;
-				break;
-			case 3:
-				if (file_str[idx] == '/') {			//成功找到后续的"*/"，注释结束
-					state = 4;
-				}
-				else {
-					state = 2;						//只有*无/，*无效，返回到q3
-				}
-				idx++;
-			case 4:									//接受态(/**/)
-				idx--;								//非注释，回退
-				return state;
-			default:
-				break;
-		}
+	if (file_str[idx + 1] == '/')
+	{
+		while (file_str[idx] != '\n')
+			idx++;
+		idx--;
+		return OK;
 	}
-	return state;
+	else
+	{
+		int idx_ = idx;
+		while (!(file_str[idx_] == '*' && file_str[idx_ + 1] == '/'))
+		{
+			idx_++;
+			if (idx_ + 1 > file_str.length())
+				return ERROR;
+		}
+		idx = idx_ +1;
+		return OK;
+	}
+	
 }
 
 /***************************************************************************
@@ -397,8 +370,8 @@ Status LEX::bufferScanner()
 			strPrint("NL", "-");
 			state = 0;//单次分析结束,可以写在if分支以外
 		}
-		else if (file_str[idx] == '/') {
-			//因为是开始状态，所以一定是注释
+		else if (file_str[idx] == '/' && (file_str[idx+1] == '/'|| file_str[idx+1] == '*')) {
+
 			Delcomment();//这时的state能反应结束状态是否是接受态(1,4)
 			state = 0;
 		}
@@ -448,8 +421,9 @@ Status LEX::analyse(const string& infile_name, const string& outfile_name)
 	}
 	bufferScanner();//输入缓冲区
 	/*输出表*/
-	auto search = Stable.begin();
-	for (; search != Stable.end(); search++) {
+	
+	outfile << endl;
+	for (auto search = Stable.begin(); search != Stable.end(); search++) {
 		outfile << "<" << search->first << "," << search->second << ">" << endl;
 	}
 	infile.close();

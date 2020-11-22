@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <algorithm>
 #define OK 1
+#define ERROR -1
 using namespace std;
 typedef int Status;
 class LEX
