@@ -26,9 +26,23 @@ struct I_Element
 		num = Num;
 	}
 	I_Element(){
-		
+		;
 	}
 };
+struct I_ElementHash
+{
+	size_t operator()(const I_Element& rhs) const
+	{
+		return hash<string>()(rhs.left_part) ^ hash<string>()(rhs.right_part) ^ hash<int>()(rhs.num) ^ hash<char>()(rhs.forward);
+	}
+};
+struct I_ElementCmp
+{
+	bool operator()(const I_Element& lhs, const I_Element& rhs) const {
+		return lhs.left_part == rhs.left_part && lhs.right_part == rhs.right_part && lhs.forward == rhs.forward && lhs.num == rhs.num;
+	}
+};
+
 class PARSER
 {
 public:

@@ -4,6 +4,16 @@
 #define LEX_RESULT ".. / 词法分析结果.txt"
 #define GRAMMAR_INPUT "../表达式.txt"
 //#define GRAMMAR_INPUT "../test.txt"
+
+struct Record
+{
+    string name;
+    int val;
+};
+
+
+
+
 int main()
 {
 	/*
@@ -12,5 +22,6 @@ int main()
 	*/
 	PARSER P;
 	P.LR1(GRAMMAR_INPUT, LEX_RESULT);
+
 	return 0;
 }

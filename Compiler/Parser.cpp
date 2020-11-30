@@ -59,15 +59,19 @@ void PARSER::show_closure()
 		cout << "I[" << count++ << "]:" << endl;
 		for (auto Item : Item_Set) {
 			cout << Item.left_part << "->";
-			for (int i = 0; i < Item.right_part.size(); i++) {
+			for (int i = 0; i <= Item.right_part.size(); i++) {
 				if (i == Item.num + 1) {
 					cout << ".";
 				}
+				if (i == Item.right_part.size())
+					break;
 				cout << Item.right_part[i];
 			}
 			cout << "," << Item.forward << endl;
 		}
 	}
+
+	cout << endl;
 }
 bool PARSER::LR1(const string& grammer_in, const string& file_in)
 {
@@ -245,7 +249,8 @@ void PARSER::init_closure()
 	}
 
 }
-//void PARSER::get_closure()
+
+
 void PARSER::go(vector<I_Element> I_to_cal, char X)
 {
 	//step1 计算闭包
@@ -291,21 +296,17 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 		}
 	cout << endl;
 	*/
-	/*step2
-	if (计算出的闭包与现有I[n]重复)
-	{
-		return;
-	}
-	else
-	{
-		从本闭包go
-	}
-	*/
-	unordered_set<I_Element> I_to_push(I_to_cal.begin(), I_to_cal.end());
+
+	unordered_set<I_Element, I_ElementHash,I_ElementCmp> I_to_push(I_to_cal.begin(), I_to_cal.end());
+
+
 	//判断是否与现有闭包重复
 	for (int i = 0; i < I_size; i++)
 	{
-		unordered_set<I_Element> check_unique(I[i].begin(), I[i].end());
+		unordered_set<I_Element, I_ElementHash, I_ElementCmp> check_unique;
+		for (auto element : I[i])
+			check_unique.insert(element);
+
 		//项目集大小不同必不重复
 		if (check_unique.size() != I_to_push.size())
 			continue;
@@ -323,10 +324,16 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 			return;
 		}
 	}
-	
-	I_size++;
+
 	const int cur_I_size = I_size;
-	I.push_back( vector<I_Element>( I_to_push.begin(), I_to_push.end() ) );
+	I_size++;
+	
+	vector<I_Element>().swap(I_to_cal);
+	for (auto element : I_to_push)
+		I_to_cal.push_back(element);
+	I.push_back(I_to_cal);
+
+	//计算可用于go的符号
 	unordered_set<char> symbols_for_go;
 	for (auto element : I[cur_I_size])
 	{
@@ -348,6 +355,7 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 		}
 		go(I_for_go, symbol_for_go);
 	}
+
 }
 
 //求字符串str的First集
