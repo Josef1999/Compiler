@@ -259,6 +259,53 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 		从本闭包go
 	}
 	*/
+	unordered_set<I_Element> I_to_push(I_to_cal.begin(), I_to_cal.end());
+	//判断是否与现有闭包重复
+	for (int i = 0; i < I_size; i++)
+	{
+		unordered_set<I_Element> check_unique(I[i].begin(), I[i].end());
+		//项目集大小不同必不重复
+		if (check_unique.size() != I_to_push.size())
+			continue;
+		int CNT = 0;
+		for (auto element : I_to_push)
+		{
+			if (check_unique.find(element) == check_unique.end())
+				break;
+			else
+				CNT++;
+		}
+		//与现有闭包重复,返回
+		if (CNT == check_unique.size())
+		{
+			return;
+		}
+	}
+	
+	I_size++;
+	const int cur_I_size = I_size;
+	I.push_back( vector<I_Element>( I_to_push.begin(), I_to_push.end() ) );
+	unordered_set<char> symbols_for_go;
+	for (auto element : I[cur_I_size])
+	{
+		//若.在右部末尾则无法GO
+		int char_next_point = element.num + 1;
+		if (char_next_point < element.right_part.length())
+			symbols_for_go.insert(element.right_part[char_next_point]);
+	}
+	//根据可用于go的符号选出所有相关项目
+	for (const char& symbol_for_go : symbols_for_go)
+	{
+		cout << symbol_for_go << ':';
+		vector<I_Element> I_for_go;
+		for (auto element : I[cur_I_size])
+		{
+			int char_next_point = element.num + 1;
+			if (element.right_part[char_next_point] == symbol_for_go)
+				I_for_go.push_back(I_Element(element.left_part, element.right_part, element.forward, char_next_point));
+		}
+		go(I_for_go, symbol_for_go);
+	}
 }
 
 //求字符串str的First集
