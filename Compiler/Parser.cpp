@@ -252,7 +252,7 @@ void PARSER::init_closure()
 	//根据可用于go的符号选出所有相关项目
 	for (const char& symbol_for_go : symbols_for_go)
 	{
-		cout << symbol_for_go << ':';
+		
 		vector<I_Element> I_for_go;
 		for (auto element : I[0])
 		{
@@ -362,7 +362,6 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 	//根据可用于go的符号选出所有相关项目
 	for (const char& symbol_for_go : symbols_for_go)
 	{
-		cout << symbol_for_go << ':';
 		vector<I_Element> I_for_go;
 		for (auto element : I[cur_I_size])
 		{
