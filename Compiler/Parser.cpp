@@ -244,9 +244,21 @@ void PARSER::init_closure()
 
 }
 //void PARSER::get_closure()
-void PARSER::go(vector<I_Element> I_for_go, char X)
+void PARSER::go(vector<I_Element> I_to_cal, char X)
 {
+	//step1 计算闭包
 
+
+	/*step2
+	if (计算出的闭包与现有I[n]重复)
+	{
+		return;
+	}
+	else
+	{
+		从本闭包go
+	}
+	*/
 }
 
 //求字符串str的First集

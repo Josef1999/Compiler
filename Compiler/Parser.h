@@ -59,8 +59,8 @@ private:
 	void init_Terminal();
 	void init_NonTerminal();
 	void init_First();
+	void init_closure();			//求项目集闭包
 	void get_First(const string& str);					//求字符串str的First集
-	void init_closure(vector<vector<I_Element>>& I);			//求项目集闭包
 	void go(vector<I_Element> I, char X);		//GO(I，X)＝CLOSURE(J) J＝{任何形如A→aX·b的项目| A→a·Xb属于I}
 	
 	//DEBUG用
