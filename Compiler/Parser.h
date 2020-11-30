@@ -18,6 +18,16 @@ struct I_Element
 	string right_part;	//推导式右部
 	char forward;		//LR(1)展望
 	int num;	//点的位置,".S"时num=-1;
+	I_Element(const string& Left_part, const string& Right_part,const int& Num=-1, const char& Forward='#')
+	{
+		left_part = Left_part;
+		right_part = Right_part;
+		forward = Forward;
+		num = Num;
+	}
+	I_Element(){
+		
+	}
 };
 class PARSER
 {
@@ -44,7 +54,7 @@ private:
 	vector<unordered_map<char, pair<action, int>>> Action;	//Action[S][a] 获取所要采取的行动
 
 
-	vector<I_Element> I_element;						//所有项目
+	//vector<I_Element> I_element;						//所有项目
 	int I_size;											//项目集个数
 	vector<vector<I_Element>> I;						//项目集
 	void init(const string& grammer_in);				//初始化Goto、Action、Grammer_Rules、First、Terminal、NonTerminal
@@ -55,4 +65,6 @@ private:
 	void show_NonTerminal();
 	void show_Terminal();
 	void show_Grammer_Rules();
+	void show_First();
+	void show_closure();
 };
