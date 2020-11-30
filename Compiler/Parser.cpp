@@ -54,7 +54,9 @@ void PARSER::show_First()
 void PARSER::show_closure()
 {
 	cout << "闭包为：" << endl;
+	int count = 0;
 	for (auto Item_Set : I) {
+		cout << "I[" << count++ << "]:" << endl;
 		for (auto Item : Item_Set) {
 			cout << Item.left_part << "->";
 			for (int i = 0; i < Item.right_part.size(); i++) {
@@ -237,7 +239,7 @@ void PARSER::init_closure()
 		{
 			int char_next_point = element.num + 1;
 			if (element.right_part[char_next_point] == symbol_for_go)
-				I_for_go.push_back(I_Element(element.left_part, element.right_part, element.forward, char_next_point));
+				I_for_go.push_back(I_Element(element.left_part, element.right_part, char_next_point, element.forward));
 		}
 		go(I_for_go, symbol_for_go);
 	}
@@ -247,8 +249,48 @@ void PARSER::init_closure()
 void PARSER::go(vector<I_Element> I_to_cal, char X)
 {
 	//step1 计算闭包
+	for (int j = 0; j < I_to_cal.size(); j++) {//遍历I_to_cal中所有的项目
+		int k = I_to_cal[j].num + 1;
+		if (k < I_to_cal[j].right_part.size()) {//非终止，分析I_to_cal[j].right_part[k]
+			for (auto Rules : Grammar_Rules) {
+				string Char_To_String;
+				Char_To_String.push_back(I_to_cal[j].right_part[k]);
+				if (Rules.first == Char_To_String) {			//判断是否是产生式左部
+					//B->beta,First(forward_str)判断是否重复，目前先不做
+					//非重复则加入
+					string forward_str;						//存k之后的子串和I_to_cal[j].forward的连接
+					forward_str = I_to_cal[j].right_part.substr(k + 1) + I_to_cal[j].forward;
+					get_First(forward_str);									//求First集作为新项目集的展望
 
+					I_Element new_Element(Rules.first, Rules.second);
+					for (auto First_In_Forward : First[forward_str]) {	//展望不同属于不同的项目集
+						new_Element.forward = First_In_Forward;
+						I_to_cal.push_back(new_Element);
+					}
+				}
 
+			}
+		}
+		else {
+			continue;
+		}
+	}
+	/*
+	cout << "I[1]:";
+		for (auto Item : I_to_cal) {
+			cout << Item.left_part << "->";
+			for (int i = 0; i <= Item.right_part.size(); i++) {
+				if (i == Item.num + 1) {
+					cout << ".";
+				}
+				if (i == Item.right_part.size())
+					break;
+				cout << Item.right_part[i];
+			}
+			cout << "," << Item.forward << endl;
+		}
+	cout << endl;
+	*/
 	/*step2
 	if (计算出的闭包与现有I[n]重复)
 	{
