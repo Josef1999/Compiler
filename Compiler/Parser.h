@@ -58,9 +58,11 @@ private:
 	int I_size;											//项目集个数
 	vector<vector<I_Element>> I;						//项目集
 	void init(const string& grammer_in);				//初始化Goto、Action、Grammer_Rules、First、Terminal、NonTerminal
+	void init_First();
+	void get_First(const string& str);					//求字符串str的First集
 	void closure(vector<vector<I_Element>>& I);			//求项目集闭包
 	void go(vector<vector<I_Element>> I, char X);		//GO(I，X)＝CLOSURE(J) J＝{任何形如A→aX·b的项目| A→a·Xb属于I}
-	void get_First(const string& str);					//求字符串str的First集
+	
 	//DEBUG用
 	void show_NonTerminal();
 	void show_Terminal();

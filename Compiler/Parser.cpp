@@ -11,7 +11,7 @@ void PARSER::show_Terminal()
 }
 void PARSER::show_NonTerminal()
 {
-	cout << "非终结符为：";
+	cout << "非终结符为："<<endl;
 	for (auto element : NonTerminal)
 		cout << element << ' ';
 	cout << endl;
@@ -25,6 +25,7 @@ void PARSER::show_Grammer_Rules()
 }
 void PARSER::show_First()
 {
+	cout << "终结符First集为：" << endl;
 	for (auto ch : Terminal) {
 		string Char_To_String;
 		Char_To_String.push_back(ch);
@@ -34,6 +35,8 @@ void PARSER::show_First()
 		}
 		cout << endl;
 	}
+	
+	cout << "非终结符First集为：" << endl;
 	for (auto str : NonTerminal) {
 		string Char_To_String;
 		Char_To_String.push_back(str);
@@ -47,6 +50,7 @@ void PARSER::show_First()
 }
 void PARSER::show_closure()
 {
+	cout << "闭包为：" << endl;
 	for (auto Item_Set: I) {
 		for (auto Item : Item_Set) {
 			cout << Item.left_part << "->";
@@ -93,173 +97,13 @@ void PARSER::init(const string& grammer_in)
 		NonTerminal.insert(left_part[0]);
 	}
 
-	//根据推导式求First集
-	for (auto ch : Terminal) {			//终结符
-		string Char_To_String;
-		Char_To_String.push_back(ch);
-		First[Char_To_String].insert(ch);
-	}
-
-	for (auto str : NonTerminal) {		//非终结符
-		string Char_To_String;
-		Char_To_String.push_back(str);
-		for (auto Rules : Grammar_Rules) {
-			if (Rules.first == Char_To_String) {
-				bool Exist_Null = true;			//判断所求First集是否含空
-				for (auto Right_Element : Rules.second) {
-					if (Terminal.find(Right_Element) != Terminal.end()) {//右边的符号Right_Element是终结符
-						First[Char_To_String].insert(Right_Element);	//添加到First集
-						Exist_Null = false;
-						break;
-					}
-					else {													//右边的符号Right_Element是非终结符
-						string Element_To_String;
-						Element_To_String.push_back(Right_Element);
-						//该非终结符的First集添加到产生式左部符号的First集
-						First[Char_To_String].insert(First[Element_To_String].begin(), First[Element_To_String].end());
-						if (First[Element_To_String].find('$') != First[Element_To_String].end()) {//该非终结符含空,需要在产生式左部符号的First集删掉空
-							First[Char_To_String].erase('$');
-						}
-						else {
-							Exist_Null = false;
-							break;
-						}
-					}
-				}
-				if (Exist_Null == true) {
-					First[Char_To_String].insert('$');
-				}
-			}
-		}
-	}
-	for (auto str : NonTerminal) {		//非终结符
-		string Char_To_String;
-		Char_To_String.push_back(str);
-		for (auto Rules : Grammar_Rules) {
-			if (Rules.first == Char_To_String) {
-				bool Exist_Null = true;			//判断所求First集是否含空
-				for (auto Right_Element : Rules.second) {
-					if (Terminal.find(Right_Element) != Terminal.end()) {//右边的符号Right_Element是终结符
-						First[Char_To_String].insert(Right_Element);	//添加到First集
-						Exist_Null = false;
-						break;
-					}
-					else {													//右边的符号Right_Element是非终结符
-						string Element_To_String;
-						Element_To_String.push_back(Right_Element);
-						//该非终结符的First集添加到产生式左部符号的First集
-						First[Char_To_String].insert(First[Element_To_String].begin(), First[Element_To_String].end());
-						if (First[Element_To_String].find('$') != First[Element_To_String].end()) {//该非终结符含空,需要在产生式左部符号的First集删掉空
-							First[Char_To_String].erase('$');
-						}
-						else {
-							Exist_Null = false;
-							break;
-						}
-					}
-				}
-				if (Exist_Null == true) {
-					First[Char_To_String].insert('$');
-				}
-			}
-		}
-	}
-	for (auto str : NonTerminal) {		//非终结符
-		string Char_To_String;
-		Char_To_String.push_back(str);
-		for (auto Rules : Grammar_Rules) {
-			if (Rules.first == Char_To_String) {
-				bool Exist_Null = true;			//判断所求First集是否含空
-				for (auto Right_Element : Rules.second) {
-					if (Terminal.find(Right_Element) != Terminal.end()) {//右边的符号Right_Element是终结符
-						First[Char_To_String].insert(Right_Element);	//添加到First集
-						Exist_Null = false;
-						break;
-					}
-					else {													//右边的符号Right_Element是非终结符
-						string Element_To_String;
-						Element_To_String.push_back(Right_Element);
-						//该非终结符的First集添加到产生式左部符号的First集
-						First[Char_To_String].insert(First[Element_To_String].begin(), First[Element_To_String].end());
-						if (First[Element_To_String].find('$') != First[Element_To_String].end()) {//该非终结符含空,需要在产生式左部符号的First集删掉空
-							First[Char_To_String].erase('$');
-						}
-						else {
-							Exist_Null = false;
-							break;
-						}
-					}
-				}
-				if (Exist_Null == true) {
-					First[Char_To_String].insert('$');
-				}
-			}
-		}
-	}
-	for (auto str : NonTerminal) {		//非终结符
-		string Char_To_String;
-		Char_To_String.push_back(str);
-		for (auto Rules : Grammar_Rules) {
-			if (Rules.first == Char_To_String) {
-				bool Exist_Null = true;			//判断所求First集是否含空
-				for (auto Right_Element : Rules.second) {
-					if (Terminal.find(Right_Element) != Terminal.end()) {//右边的符号Right_Element是终结符
-						First[Char_To_String].insert(Right_Element);	//添加到First集
-						Exist_Null = false;
-						break;
-					}
-					else {													//右边的符号Right_Element是非终结符
-						string Element_To_String;
-						Element_To_String.push_back(Right_Element);
-						//该非终结符的First集添加到产生式左部符号的First集
-						First[Char_To_String].insert(First[Element_To_String].begin(), First[Element_To_String].end());
-						if (First[Element_To_String].find('$') != First[Element_To_String].end()) {//该非终结符含空,需要在产生式左部符号的First集删掉空
-							First[Char_To_String].erase('$');
-						}
-						else {
-							Exist_Null = false;
-							break;
-						}
-					}
-				}
-				if (Exist_Null == true) {
-					First[Char_To_String].insert('$');
-				}
-			}
-		}
-	}
-	for (auto str : NonTerminal) {		//非终结符
-		string Char_To_String;
-		Char_To_String.push_back(str);
-		for (auto Rules : Grammar_Rules) {
-			if (Rules.first == Char_To_String) {
-				bool Exist_Null = true;			//判断所求First集是否含空
-				for (auto Right_Element : Rules.second) {
-					if (Terminal.find(Right_Element) != Terminal.end()) {//右边的符号Right_Element是终结符
-						First[Char_To_String].insert(Right_Element);	//添加到First集
-						Exist_Null = false;
-						break;
-					}
-					else {													//右边的符号Right_Element是非终结符
-						string Element_To_String;
-						Element_To_String.push_back(Right_Element);
-						//该非终结符的First集添加到产生式左部符号的First集
-						First[Char_To_String].insert(First[Element_To_String].begin(), First[Element_To_String].end());
-						if (First[Element_To_String].find('$') != First[Element_To_String].end()) {//该非终结符含空,需要在产生式左部符号的First集删掉空
-							First[Char_To_String].erase('$');
-						}
-						else {
-							Exist_Null = false;
-							break;
-						}
-					}
-				}
-				if (Exist_Null == true) {
-					First[Char_To_String].insert('$');
-				}
-			}
-		}
-	}
+	//构造First集方便后续计算
+	init_First();
+	get_First("DEC");
+	cout << "DEC: " << First["DEC"].size() << endl;
+	for (auto c : First["DEC"])
+		cout << c << ' ' << endl;
+	get_First("Sa");
 	//求项目集闭包
 	closure(I);
 
@@ -272,16 +116,76 @@ void PARSER::init(const string& grammer_in)
 #endif
 
 }
+void PARSER::init_First()
+{
+	
+	for (auto ch : Terminal) {			//终结符
+		string Char_To_String;
+		Char_To_String.push_back(ch);
+		First[Char_To_String].insert(ch);
+	}
+	
+	unordered_map<string, unordered_set<char>> pre_First;
+EXTEND_FIRST:
+	pre_First = First;
+	for (auto str : NonTerminal) {		//非终结符
+		string Char_To_String;
+		Char_To_String.push_back(str);
+		for (auto Rules : Grammar_Rules) {
+			if (Rules.first == Char_To_String) {
+				bool Exist_Null = true;			//判断所求First集是否含空
+				for (auto Right_Element : Rules.second) {
+					if (Terminal.find(Right_Element) != Terminal.end()) {//右边的符号Right_Element是终结符
+						First[Char_To_String].insert(Right_Element);	//添加到First集
+						Exist_Null = false;
+						break;
+					}
+					else {													//右边的符号Right_Element是非终结符
+						string Element_To_String;
+						Element_To_String.push_back(Right_Element);
+						//该非终结符的First集添加到产生式左部符号的First集
+						First[Char_To_String].insert(First[Element_To_String].begin(), First[Element_To_String].end());
+						if (First[Element_To_String].find('$') != First[Element_To_String].end()) {//该非终结符含空,需要在产生式左部符号的First集删掉空
+							First[Char_To_String].erase('$');
+						}
+						else {
+							Exist_Null = false;
+							break;
+						}
+					}
+				}
+				if (Exist_Null == true) {
+					First[Char_To_String].insert('$');
+				}
+			}
+		}
+	}
 
+	if (pre_First.size() != First.size())
+		goto EXTEND_FIRST;
+	else
+	{
+		auto element = First.begin();
+		for (auto pre_element : pre_First)
+		{
+			if (pre_element.second.size() != element->second.size())
+				goto EXTEND_FIRST;
+			element++;
+		}
+	}
+	return;
+}
 void PARSER::get_First(const string& str)			//求字符串str的First集
 {
 	//bool Exist_NULL = true;//判断非终结符的First集是否含空
 	for (auto element : str) {
-		if (NonTerminal.find(element) != NonTerminal.end()) {			//当前字符为终结符	
+		//当前字符为终结符
+		if (Terminal.find(element) != Terminal.end()) {				
 			First[str].insert(element);
 			return;
 		}
-		else if (Terminal.find(element) != Terminal.end()) {			//当前字符为非终结符
+		//当前字符为非终结符
+		else if (NonTerminal.find(element) != NonTerminal.end()) {			
 			string Element_To_String;
 			Element_To_String.push_back(element);
 			First[str].insert(First[Element_To_String].begin(), First[Element_To_String].end());
