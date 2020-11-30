@@ -73,6 +73,25 @@ void PARSER::show_closure()
 
 	cout << endl;
 }
+void PARSER::show_this_closure()
+{
+	cout << "I[" << I_size-1 << "]:" << endl;
+	for (auto Item : I[I_size-1]) {
+		cout << Item.left_part << "->";
+		for (int i = 0; i <= Item.right_part.size(); i++) {
+			if (i == Item.num + 1) {
+				cout << ".";
+			}
+			if (i == Item.right_part.size())
+				break;
+			cout << Item.right_part[i];
+		}
+		cout << "," << Item.forward << endl;
+	}
+
+
+	cout << endl;
+}
 bool PARSER::LR1(const string& grammer_in, const string& file_in)
 {
 	init(grammer_in);
@@ -95,10 +114,6 @@ void PARSER::init(const string& grammer_in)
 	init_closure();
 
 #ifdef DEBUG_MODE
-	show_Terminal();
-	show_NonTerminal();
-	show_Grammer_Rules();
-	show_First();
 	show_closure();
 #endif
 
@@ -270,7 +285,7 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 					I_Element new_Element(Rules.first, Rules.second);
 					for (auto First_In_Forward : First[forward_str]) {	//展望不同属于不同的项目集
 						new_Element.forward = First_In_Forward;
-						I_to_cal.push_back(new_Element);
+						I_to_cal.push_back(new_Element); 
 					}
 				}
 
@@ -297,7 +312,7 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 	cout << endl;
 	*/
 
-	unordered_set<I_Element, I_ElementHash,I_ElementCmp> I_to_push(I_to_cal.begin(), I_to_cal.end());
+	unordered_set<I_Element, I_ElementHash, I_ElementCmp> I_to_push(I_to_cal.begin(), I_to_cal.end());
 
 
 	//判断是否与现有闭包重复
@@ -324,15 +339,17 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 			return;
 		}
 	}
-
+#ifdef DEBUG_MODE
+	
+#endif
 	const int cur_I_size = I_size;
 	I_size++;
-	
+
 	vector<I_Element>().swap(I_to_cal);
 	for (auto element : I_to_push)
 		I_to_cal.push_back(element);
 	I.push_back(I_to_cal);
-
+	show_this_closure();
 	//计算可用于go的符号
 	unordered_set<char> symbols_for_go;
 	for (auto element : I[cur_I_size])
@@ -351,7 +368,7 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 		{
 			int char_next_point = element.num + 1;
 			if (element.right_part[char_next_point] == symbol_for_go)
-				I_for_go.push_back(I_Element(element.left_part, element.right_part, element.forward, char_next_point));
+				I_for_go.push_back(I_Element(element.left_part, element.right_part, char_next_point,element.forward));
 		}
 		go(I_for_go, symbol_for_go);
 	}
