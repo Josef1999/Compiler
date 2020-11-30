@@ -1,17 +1,20 @@
 #include"Parser.h"
 #define DEBUG_MODE
 PARSER::PARSER()
-{}
+{
+	I_size = 0;
+	I = vector<vector<I_Element>>(1);
+}
 void PARSER::show_Terminal()
 {
-	cout << "终结符为：";
+	cout << "终结符为：" << endl;
 	for (auto element : Terminal)
 		cout << element << ' ';
 	cout << endl;
 }
 void PARSER::show_NonTerminal()
 {
-	cout << "非终结符为："<<endl;
+	cout << "非终结符为：" << endl;
 	for (auto element : NonTerminal)
 		cout << element << ' ';
 	cout << endl;
@@ -20,7 +23,7 @@ void PARSER::show_Grammer_Rules()
 {
 	cout << "推导式为：" << endl;
 	for (auto element : Grammar_Rules)
-		cout << element.first << ' ' << element.second << endl;
+		cout << element.first << "->" << element.second << endl;
 	cout << endl;
 }
 void PARSER::show_First()
@@ -35,7 +38,7 @@ void PARSER::show_First()
 		}
 		cout << endl;
 	}
-	
+
 	cout << "非终结符First集为：" << endl;
 	for (auto str : NonTerminal) {
 		string Char_To_String;
@@ -51,10 +54,10 @@ void PARSER::show_First()
 void PARSER::show_closure()
 {
 	cout << "闭包为：" << endl;
-	for (auto Item_Set: I) {
+	for (auto Item_Set : I) {
 		for (auto Item : Item_Set) {
 			cout << Item.left_part << "->";
-			for (int i = 0; i < Item.right_part.size();i++) {
+			for (int i = 0; i < Item.right_part.size(); i++) {
 				if (i == Item.num + 1) {
 					cout << ".";
 				}
@@ -69,7 +72,6 @@ bool PARSER::LR1(const string& grammer_in, const string& file_in)
 	init(grammer_in);
 	return true;
 }
-//已完成：Terminal, NonTerminal,Grammar_Rules
 void PARSER::init(const string& grammer_in)
 {
 	infile.open(grammer_in);
@@ -78,34 +80,13 @@ void PARSER::init(const string& grammer_in)
 		cout << "Failed to open the grammer file" << endl;
 		return;
 	}
-	//读入终结符
-	string line;
-	getline(infile, line);
-	stringstream ss(line);
-	char ch;
-	while (ss >> ch)
-		Terminal.insert(ch);
+	init_Terminal();
+	init_NonTerminal();
+	infile.close();
 
-	//读入推导式，读入非终结符
-	while (!infile.eof())
-	{
-		getline(infile, line);
-		int cur_pos = line.find('>');
-		string left_part = line.substr(0, cur_pos);
-		string right_part = line.substr(cur_pos + 1);
-		Grammar_Rules.push_back(make_pair(left_part, right_part));
-		NonTerminal.insert(left_part[0]);
-	}
-
-	//构造First集方便后续计算
 	init_First();
-	get_First("DEC");
-	cout << "DEC: " << First["DEC"].size() << endl;
-	for (auto c : First["DEC"])
-		cout << c << ' ' << endl;
-	get_First("Sa");
 	//求项目集闭包
-	closure(I);
+	init_closure();
 
 #ifdef DEBUG_MODE
 	show_Terminal();
@@ -116,15 +97,39 @@ void PARSER::init(const string& grammer_in)
 #endif
 
 }
+void PARSER::init_Terminal()
+{
+	//读入终结符
+	string line;
+	getline(infile, line);
+	stringstream ss(line);
+	char ch;
+	while (ss >> ch)
+		Terminal.insert(ch);
+}
+void PARSER::init_NonTerminal()
+{
+	//读入推导式，读入非终结符
+	string line;
+	while (!infile.eof())
+	{
+		getline(infile, line);
+		int cur_pos = line.find('>');
+		string left_part = line.substr(0, cur_pos);
+		string right_part = line.substr(cur_pos + 1);
+		Grammar_Rules.push_back(make_pair(left_part, right_part));
+		NonTerminal.insert(left_part[0]);
+	}
+}
 void PARSER::init_First()
 {
-	
+
 	for (auto ch : Terminal) {			//终结符
 		string Char_To_String;
 		Char_To_String.push_back(ch);
 		First[Char_To_String].insert(ch);
 	}
-	
+
 	unordered_map<string, unordered_set<char>> pre_First;
 EXTEND_FIRST:
 	pre_First = First;
@@ -175,17 +180,87 @@ EXTEND_FIRST:
 	}
 	return;
 }
-void PARSER::get_First(const string& str)			//求字符串str的First集
+
+//这个函数到底是同时进行闭包和GO的计算还是单纯只计算本项目的闭包存在疑惑。(目前包括GO)
+void PARSER::init_closure()
+{
+	//求初始闭包I0
+
+	I[0].push_back(I_Element("Z", "S"));
+
+	//int count = 0;//调试用
+
+	for (int j = 0; j < I[0].size(); j++) {//遍历I[i]中所有的项目
+		int k = I[0][j].num + 1;
+		if (k < I[0][j].right_part.size()) {//非终止，分析I[i][j].right_part[k]
+			for (auto Rules : Grammar_Rules) {
+				string Char_To_String;
+				Char_To_String.push_back(I[0][j].right_part[k]);
+				if (Rules.first == Char_To_String) {			//判断是否是产生式左部
+					//B->beta,First(forward_str)判断是否重复，目前先不做
+					//非重复则加入
+
+					string forward_str;						//存k之后的子串和I[i][j].forward的连接
+					forward_str = I[0][j].right_part.substr(k + 1) + I[0][j].forward;
+					get_First(forward_str);									//求First集作为新项目集的展望
+
+					I_Element new_Element(Rules.first, Rules.second);
+					for (auto First_In_Forward : First[forward_str]) {	//展望不同属于不同的项目集
+						new_Element.forward = First_In_Forward;
+						I[0].push_back(new_Element);
+					}
+				}
+
+			}
+		}
+		else {
+			continue;
+		}
+	}
+
+	I_size = 1;
+	//准备可用于go的符号
+	unordered_set<char> symbols_for_go;
+	for (auto element : I[0])
+	{
+		//若.在右部末尾则无法GO
+		int char_next_point = element.num + 1;
+		if (char_next_point < element.right_part.length())
+			symbols_for_go.insert(element.right_part[char_next_point]);
+	}
+	//根据可用于go的符号选出所有相关项目
+	for (const char& symbol_for_go : symbols_for_go)
+	{
+		cout << symbol_for_go << ':';
+		vector<I_Element> I_for_go;
+		for (auto element : I[0])
+		{
+			int char_next_point = element.num + 1;
+			if (element.right_part[char_next_point] == symbol_for_go)
+				I_for_go.push_back(I_Element(element.left_part, element.right_part, element.forward, char_next_point));
+		}
+		go(I_for_go, symbol_for_go);
+	}
+
+}
+//void PARSER::get_closure()
+void PARSER::go(vector<I_Element> I_for_go, char X)
+{
+
+}
+
+//求字符串str的First集
+void PARSER::get_First(const string& str)
 {
 	//bool Exist_NULL = true;//判断非终结符的First集是否含空
 	for (auto element : str) {
 		//当前字符为终结符
-		if (Terminal.find(element) != Terminal.end()) {				
+		if (Terminal.find(element) != Terminal.end()) {
 			First[str].insert(element);
 			return;
 		}
 		//当前字符为非终结符
-		else if (NonTerminal.find(element) != NonTerminal.end()) {			
+		else if (NonTerminal.find(element) != NonTerminal.end()) {
 			string Element_To_String;
 			Element_To_String.push_back(element);
 			First[str].insert(First[Element_To_String].begin(), First[Element_To_String].end());
@@ -201,57 +276,5 @@ void PARSER::get_First(const string& str)			//求字符串str的First集
 			return;//出错处理，当前不考虑(如果不考虑出错，可以把上面两个分支合并)。
 		}
 	}
-}
-
-//这个函数到底是同时进行闭包和GO的计算还是单纯只计算本项目的闭包存在疑惑。(目前包括GO)
-void PARSER::closure(vector<vector<I_Element>>& I)
-{
-	//初始的闭包I0
-	vector<I_Element> First_Item_Set;
-	I.push_back(First_Item_Set);
-	I_Element I0("Z","S");
-	I[0].push_back(I0);
-	int i = 0;//初始I0
-	//int count = 0;//调试用
-	while (1) {
-		//i,j,k可以改名，待修改
-		//计算I[i]的闭包
-		for (int j = 0; j < I[i].size(); j++) {//遍历I[i]中所有的项目
-			int k = I[i][j].num + 1;
-			if (k < I[i][j].right_part.size()) {//非终止，分析I[i][j].right_part[k]
-				for (auto Rules : Grammar_Rules) {
-					string Char_To_String;
-					Char_To_String.push_back(I[i][j].right_part[k]);
-					if (Rules.first == Char_To_String) {			//判断是否是产生式左部
-						//B->beta,First(forward_str)判断是否重复，目前先不做
-						//非重复则加入
-						I_Element new_Element(Rules.first, Rules.second);
-						string forward_str;						//存k之后的子串和I[i][j].forward的连接
-						for (k = k + 1; k < I[i][j].right_part.size(); k++) {		//连接k之后的子串
-							forward_str += I[i][j].right_part[k];
-						}
-						forward_str += I[i][j].forward;							//连接展望
-						get_First(forward_str);									//求First集作为新项目集的展望
-						for (auto First_In_Forward : First[forward_str]) {	//展望不同属于不同的项目集
-							new_Element.forward = First_In_Forward;
-							I[i].push_back(new_Element);
-						}
-					}
-
-				}
-			}
-			else {
-				break;				//不会产生新的项目
-			}
-		}
-
-		//通过go计算新的闭包
-		break;
-	}
-	
-}
-void PARSER::go(vector<vector<I_Element>> I, char X)
-{
-
 }
 
