@@ -47,6 +47,6 @@ private:
 	vector<vector<I_Element>> I;						//项目集
 	void init();										//初始化Goto、Action、Grammer_Rules、First、Terminal、NonTerminal
 	void closure(vector<vector<I_Element>>& I);			//求项目集闭包
-	void go(vector<vector<I_Element>> I, char X);		//GO(I，X)＝CLOSURE(J) J＝{任何形如A→aX·b的项目| A→a·Xb属于I}
+	//void go(vector<vector<I_Element>> I, char X);		//GO(I，X)＝CLOSURE(J) J＝{任何形如A→aX·b的项目| A→a·Xb属于I}
 
 };
