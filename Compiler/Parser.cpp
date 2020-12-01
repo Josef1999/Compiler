@@ -75,8 +75,8 @@ void PARSER::show_closure()
 }
 void PARSER::show_this_closure()
 {
-	cout << "I[" << I_size-1 << "]:" << endl;
-	for (auto Item : I[I_size-1]) {
+	cout << "I[" << I_size - 1 << "]:" << endl;
+	for (auto Item : I[I_size - 1]) {
 		cout << Item.left_part << "->";
 		for (int i = 0; i <= Item.right_part.size(); i++) {
 			if (i == Item.num + 1) {
@@ -206,8 +206,8 @@ EXTEND_FIRST:
 void PARSER::init_closure()
 {
 	//求初始闭包I0
-
-	I[0].push_back(I_Element("Z", "S"));
+	const I_Element starter("Z", "S");
+	I[0].push_back(starter);
 
 	//int count = 0;//调试用
 
@@ -252,7 +252,7 @@ void PARSER::init_closure()
 	//根据可用于go的符号选出所有相关项目
 	for (const char& symbol_for_go : symbols_for_go)
 	{
-		
+
 		vector<I_Element> I_for_go;
 		for (auto element : I[0])
 		{
@@ -261,6 +261,16 @@ void PARSER::init_closure()
 				I_for_go.push_back(I_Element(element.left_part, element.right_part, char_next_point, element.forward));
 		}
 		go(I_for_go, symbol_for_go);
+		/*
+		if (Terminal.find(symbol_for_go) != Terminal.end())
+		{
+			Action[cur_I][symbol_for_go]= make_pair( action , I_after_go)
+		}
+		else if (NonTerminal.find(symbol_for_go) != NonTerminal.end())
+		{
+			Goto[cur_I][symbol_for_go] = I_after_go;
+		}
+		*/
 	}
 
 }
@@ -285,7 +295,7 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 					I_Element new_Element(Rules.first, Rules.second);
 					for (auto First_In_Forward : First[forward_str]) {	//展望不同属于不同的项目集
 						new_Element.forward = First_In_Forward;
-						I_to_cal.push_back(new_Element); 
+						I_to_cal.push_back(new_Element);
 					}
 				}
 
@@ -295,26 +305,9 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 			continue;
 		}
 	}
-	/*
-	cout << "I[1]:";
-		for (auto Item : I_to_cal) {
-			cout << Item.left_part << "->";
-			for (int i = 0; i <= Item.right_part.size(); i++) {
-				if (i == Item.num + 1) {
-					cout << ".";
-				}
-				if (i == Item.right_part.size())
-					break;
-				cout << Item.right_part[i];
-			}
-			cout << "," << Item.forward << endl;
-		}
-	cout << endl;
-	*/
 
+	//step2 准备go
 	unordered_set<I_Element, I_ElementHash, I_ElementCmp> I_to_push(I_to_cal.begin(), I_to_cal.end());
-
-
 	//判断是否与现有闭包重复
 	for (int i = 0; i < I_size; i++)
 	{
@@ -339,12 +332,12 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 			return;
 		}
 	}
-#ifdef DEBUG_MODE
-	
-#endif
-	const int cur_I_size = I_size;
+
+	const int cur_I = I_size;
 	I_size++;
 
+	Goto.push_back(unordered_map<char, int>());
+	Action.push_back(unordered_map<char, pair<action, int>>());
 	vector<I_Element>().swap(I_to_cal);
 	for (auto element : I_to_push)
 		I_to_cal.push_back(element);
@@ -352,7 +345,7 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 	show_this_closure();
 	//计算可用于go的符号
 	unordered_set<char> symbols_for_go;
-	for (auto element : I[cur_I_size])
+	for (auto element : I[cur_I])
 	{
 		//若.在右部末尾则无法GO
 		int char_next_point = element.num + 1;
@@ -363,13 +356,24 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 	for (const char& symbol_for_go : symbols_for_go)
 	{
 		vector<I_Element> I_for_go;
-		for (auto element : I[cur_I_size])
+		for (auto element : I[cur_I])
 		{
 			int char_next_point = element.num + 1;
 			if (element.right_part[char_next_point] == symbol_for_go)
-				I_for_go.push_back(I_Element(element.left_part, element.right_part, char_next_point,element.forward));
+				I_for_go.push_back(I_Element(element.left_part, element.right_part, char_next_point, element.forward));
 		}
+
 		go(I_for_go, symbol_for_go);
+		/*
+		if (Terminal.find(symbol_for_go) != Terminal.end())
+		{
+			Action[cur_I][symbol_for_go]= make_pair( action , I_after_go)
+		}
+		else if (NonTerminal.find(symbol_for_go) != NonTerminal.end())
+		{
+			Goto[cur_I][symbol_for_go] = I_after_go;
+		}
+		*/
 	}
 
 }

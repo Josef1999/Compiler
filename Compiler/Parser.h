@@ -29,6 +29,7 @@ struct I_Element
 		;
 	}
 };
+//处理unordered_set 哈希冲突用
 struct I_ElementHash
 {
 	size_t operator()(const I_Element& rhs) const
@@ -63,7 +64,7 @@ private:
 
 	unordered_map<string, unordered_set<char>> First;			//First[string]= string的First集
 	vector<unordered_map<char, int>> Goto;					//Goto[S][a]= target_status, S=cur_status, a=cur_symbol
-
+	//push_in = 移进 ； pop_out = 规约
 	typedef enum { push_in, pop_out, acc }action;
 	vector<unordered_map<char, pair<action, int>>> Action;	//Action[S][a] 获取所要采取的行动
 
