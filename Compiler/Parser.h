@@ -5,9 +5,9 @@
 #include <iterator>
 #include <unordered_map>
 #include <map>
+#include <queue>
 #include <unordered_set>
 #include <algorithm>
-#include <stack>
 #include <iomanip>
 #define OK 1
 #define ERROR -1
@@ -55,9 +55,10 @@ private:
 	ifstream infile;						//输入文件
 	ofstream outfile;						//输出文件
 
-	string input_sting;						//输入串
-	stack<int> Status;						//状态栈
-	stack<char> Symbol;						//符号栈
+	string InputString;						//输入串
+	int InputString_idx = 0;				//首个未处理的输入串字符所在位置
+	vector<int> Status;						//状态栈
+	vector<char> Symbol;					//符号栈
 
 	unordered_set<char>NonTerminal;			//非终结符集
 	unordered_set<char>Terminal;			//终结符集
@@ -76,11 +77,12 @@ private:
 	void init_Terminal();
 	void init_NonTerminal();
 	void init_First();
-	void init_closure();			//求项目集闭包
+	void init_table();									//Action、Goto表
 	void get_First(const string& str);					//求字符串str的First集
-	int get_Grammar_Rules_index(const pair<string, string> &target);
+	int get_Grammar_Rules_index(const pair<string, string> &target);	//输入推导式，返回其编号
 	int  go(vector<I_Element> I, char X);		//GO(I，X)＝CLOSURE(J) J＝{任何形如A→aX·b的项目| A→a·Xb属于I}
-	
+	bool analysis();
+	void analysis_init(const string& file_name);
 	//DEBUG用
 	void show_NonTerminal();
 	void show_Terminal();
@@ -89,4 +91,8 @@ private:
 	void show_closure();
 	void show_this_closure();
 	void show_Action_and_Goto();
+	void show_this_analysis_step();
+	void show_Symbol();
+	void show_Status();
+	void show_InputString();
 };

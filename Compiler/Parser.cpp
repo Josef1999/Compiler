@@ -74,7 +74,27 @@ void PARSER::show_closure()
 
 	cout << endl;
 }
+void PARSER::show_this_analysis_step()
+{
+	static int step = 0;
+	cout << setw(4) << step;
 
+	step++;
+}
+void PARSER::show_Symbol()
+{
+	cout << "Symbol：";
+	for (auto element : this->Symbol)
+		cout << element;
+	cout << endl;
+}
+void PARSER::show_Status()
+{
+	cout << "Status：";
+	for (auto element : this->Status)
+		cout << element << '|';
+	cout << endl;
+}
 void PARSER::show_Action_and_Goto()
 {
 	cout << setw(4) << setiosflags(ios::left) << "状态" << setw(8) << "Action" << setw(8) << "Goto" << endl;
@@ -132,10 +152,22 @@ void PARSER::show_this_closure()
 
 	cout << endl;
 }
-bool PARSER::LR1(const string& grammer_in, const string& file_in)
+void PARSER::show_InputString()
+{
+	cout << "InputString：";
+	cout << InputString.substr(InputString_idx);
+}
+bool PARSER::LR1(const string& grammer_in, const string& file_name)
 {
 	init(grammer_in);
-	return true;
+	analysis_init(file_name);
+#ifdef DEBUG_MODE
+	show_Symbol();
+	show_Status();
+	show_InputString();
+#endif
+	return analysis();
+	
 }
 void PARSER::init(const string& grammer_in)
 {
@@ -143,15 +175,16 @@ void PARSER::init(const string& grammer_in)
 	if (!infile.is_open())
 	{
 		cout << "Failed to open the grammer file" << endl;
-		return;
+		exit(1);
 	}
 	init_Terminal();
 	init_NonTerminal();
 	infile.close();
 
 	init_First();
-	//求项目集闭包
-	init_closure();
+
+	//求项目集闭包与Action，Goto表
+	init_table();
 
 #ifdef DEBUG_MODE
 	show_Action_and_Goto();
@@ -244,11 +277,9 @@ EXTEND_FIRST:
 	}
 	return;
 }
-
-//求初始闭包I0，不用考虑规约情况
-void PARSER::init_closure()
+void PARSER::init_table()
 {
-	//求初始闭包I0
+	//求初始闭包I0，不用考虑规约情况
 	I[0].push_back(starter);
 
 	//int count = 0;//调试用
@@ -322,8 +353,6 @@ void PARSER::init_closure()
 	}
 
 }
-
-
 int PARSER::go(vector<I_Element> I_to_cal, char X)
 {
 	//step1 计算闭包
@@ -443,10 +472,10 @@ int PARSER::go(vector<I_Element> I_to_cal, char X)
 
 }
 
-//求字符串str的First集
+
 void PARSER::get_First(const string& str)
 {
-	//bool Exist_NULL = true;//判断非终结符的First集是否含空
+	//求字符串str的First集
 	for (auto element : str) {
 		//当前字符为终结符
 		if (Terminal.find(element) != Terminal.end()) {
@@ -471,11 +500,40 @@ void PARSER::get_First(const string& str)
 		}
 	}
 }
-
 int PARSER::get_Grammar_Rules_index(const pair<string, string>& target)
 {
 	for (int i = 0; i < Grammar_Rules.size(); i++)
 		if (Grammar_Rules[i] == target)
 			return i;
 	return -1;
+}
+void PARSER::analysis_init(const string& file_name)
+{
+	infile.clear();
+	infile.open(file_name);
+	if (!infile.is_open())
+	{
+		cout << "待分析文件打开失败" << endl;
+		exit(1);
+	}
+
+	//符号栈、状态栈初始化
+	Status.push_back(0);
+	Symbol.push_back('#');
+
+	//输入串初始化
+	{
+		char ch;
+		
+		while (infile >> ch)
+			InputString.push_back(ch);
+		InputString.push_back('#');
+	}
+
+}
+bool PARSER::analysis()
+{
+	
+
+	return true;
 }
