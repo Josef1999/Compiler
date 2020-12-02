@@ -23,8 +23,11 @@ void PARSER::show_NonTerminal()
 void PARSER::show_Grammer_Rules()
 {
 	cout << "推导式为：" << endl;
-	for (auto element : Grammar_Rules)
+	int count = 1;
+	for (auto element : Grammar_Rules) {
+		cout << count++ << " ";
 		cout << element.first << "->" << element.second << endl;
+	}
 	cout << endl;
 }
 void PARSER::show_First()
@@ -77,8 +80,10 @@ void PARSER::show_closure()
 void PARSER::show_this_analysis_step()
 {
 	static int step = 0;
-	cout << setw(4) << step;
-
+	cout <<"step:"<< setw(4) << step<<endl;
+	show_Status();
+	show_Symbol();
+	show_InputString();
 	step++;
 }
 void PARSER::show_Symbol()
@@ -155,17 +160,12 @@ void PARSER::show_this_closure()
 void PARSER::show_InputString()
 {
 	cout << "InputString：";
-	cout << InputString.substr(InputString_idx);
+	cout << InputString.substr(InputString_idx) << endl;
 }
 bool PARSER::LR1(const string& grammer_in, const string& file_name)
 {
 	init(grammer_in);
 	analysis_init(file_name);
-#ifdef DEBUG_MODE
-	show_Symbol();
-	show_Status();
-	show_InputString();
-#endif
 	return analysis();
 	
 }
@@ -534,6 +534,34 @@ void PARSER::analysis_init(const string& file_name)
 bool PARSER::analysis()
 {
 	
-
+	while (1) {
+		show_this_analysis_step();
+		show_Grammer_Rules();
+		int cur_status = Status.back();
+		char cur_input_symbol=InputString[InputString_idx];//当前分析符号
+		int size;
+		switch (Action[cur_status][cur_input_symbol].first)
+		{
+			case push_in:
+				Status.push_back(Action[cur_status][cur_input_symbol].second);				//移进状态
+				Symbol.push_back(cur_input_symbol);											//移进符号
+				InputString_idx++;															//字符串
+				break;
+			case pop_out:
+				size=Grammar_Rules[Action[cur_status][cur_input_symbol].second].second.size();		//规约语法右部符号个数
+				for (int i = 1; i <= size; i++) {
+					Symbol.pop_back();		
+					Status.pop_back();
+				}
+				Symbol.push_back(Grammar_Rules[Action[cur_status][cur_input_symbol].second].first[0]);		//规约左部
+				Status.push_back(Goto[Status.back()][Grammar_Rules[Action[cur_status][cur_input_symbol].second].first[0]]);//规约之后进行符号栈的更新
+				break;
+			case acc:
+				return true;
+				break;
+			default:
+				break;
+		}
+	}
 	return true;
 }
