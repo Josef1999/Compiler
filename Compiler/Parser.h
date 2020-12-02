@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iterator>
 #include <unordered_map>
+#include <map>
 #include <unordered_set>
 #include <algorithm>
 #include <stack>
@@ -62,7 +63,7 @@ private:
 	unordered_set<char>Terminal;			//终结符集
 
 	vector<pair<string, string>> Grammar_Rules;			//Grammar_Rules[i]=pair<starter,beginer> (starter->beginer)
-	unordered_map<string, unordered_set<char>> First;			//First[string]= string的First集
+	map<string, unordered_set<char>> First;			//First[string]= string的First集
 	vector<unordered_map<char, int>> Goto;					//Goto[S][a]= target_status, S=cur_status, a=cur_symbol
 
 	//push_in = 移进 ； pop_out = 规约

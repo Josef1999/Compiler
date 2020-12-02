@@ -99,7 +99,7 @@ void PARSER::show_Action_and_Goto()
 					cout << "s" << setw(4) << Action[i][ch].second;
 					break;
 				case pop_out:
-					cout << "r" << setw(4) << Action[i][ch].second;
+					cout << "r" << setw(4) << Action[i][ch].second+1;
 					break;
 				}
 			else
@@ -191,7 +191,7 @@ void PARSER::init_First()
 		First[Char_To_String].insert(ch);
 	}
 
-	unordered_map<string, unordered_set<char>> pre_First;
+	map<string, unordered_set<char>> pre_First;
 EXTEND_FIRST:
 	pre_First = First;
 	for (auto str : NonTerminal) {		//非终结符
@@ -231,13 +231,16 @@ EXTEND_FIRST:
 		goto EXTEND_FIRST;
 	else
 	{
-		auto element = First.begin();
+		//FIRST集是否增大
+		if(!equal(First.begin(),First.end(),pre_First.begin()))
+			goto EXTEND_FIRST;
+		/*auto element = First.begin();
 		for (auto pre_element : pre_First)
 		{
 			if (pre_element.second.size() != element->second.size())
 				goto EXTEND_FIRST;
 			element++;
-		}
+		}*/
 	}
 	return;
 }
