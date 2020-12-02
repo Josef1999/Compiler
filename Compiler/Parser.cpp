@@ -1,5 +1,6 @@
 #include"Parser.h"
 #define DEBUG_MODE
+const I_Element starter("Z", "S");
 PARSER::PARSER()
 {
 	I_size = 0;
@@ -73,6 +74,45 @@ void PARSER::show_closure()
 
 	cout << endl;
 }
+
+void PARSER::show_Action_and_Goto()
+{
+	cout << setw(4) << setiosflags(ios::left) << "状态" << setw(8) << "Action" << setw(8) << "Goto" << endl;
+	cout << setw(4) << ' ';
+	for (auto ch : Terminal)
+		cout << setw(4) << ch;
+	for (auto ch : NonTerminal)
+		cout << setw(4) << ch;
+	cout << endl;
+
+	for (int i = 0; i < Action.size(); i++)
+	{
+		cout << setw(4) << i;
+		for (auto ch : Terminal)
+			if (Action[i].find(ch) != Action[i].end())
+				switch (Action[i][ch].first)
+				{
+				case acc:
+					cout << setw(4) << "acc";
+					break;
+				case push_in:
+					cout << "s" << setw(4) << Action[i][ch].second;
+					break;
+				case pop_out:
+					cout << "r" << setw(4) << Action[i][ch].second;
+					break;
+				}
+			else
+				cout << setw(4) << ' ';
+		for (auto ch : NonTerminal)
+			if (Goto[i].find(ch) != Goto[i].end())
+				cout << setw(4) << Goto[i][ch];
+			else
+				cout << setw(4) << ' ';
+		cout << endl;
+			
+	}
+}
 void PARSER::show_this_closure()
 {
 	cout << "I[" << I_size - 1 << "]:" << endl;
@@ -114,7 +154,7 @@ void PARSER::init(const string& grammer_in)
 	init_closure();
 
 #ifdef DEBUG_MODE
-	show_closure();
+	show_Action_and_Goto();
 #endif
 
 }
@@ -202,11 +242,10 @@ EXTEND_FIRST:
 	return;
 }
 
-//这个函数到底是同时进行闭包和GO的计算还是单纯只计算本项目的闭包存在疑惑。(目前包括GO)
+//求初始闭包I0，不用考虑规约情况
 void PARSER::init_closure()
 {
 	//求初始闭包I0
-	const I_Element starter("Z", "S");
 	I[0].push_back(starter);
 
 	//int count = 0;//调试用
@@ -238,17 +277,21 @@ void PARSER::init_closure()
 			continue;
 		}
 	}
-
+	const int cur_I = 0;
 	I_size = 1;
 	//准备可用于go的符号
 	unordered_set<char> symbols_for_go;
 	for (auto element : I[0])
 	{
-		//若.在右部末尾则无法GO
+
 		int char_next_point = element.num + 1;
+		//若.不在末尾则添加至可Go的字符集内
 		if (char_next_point < element.right_part.length())
 			symbols_for_go.insert(element.right_part[char_next_point]);
+
 	}
+	Goto.push_back(unordered_map<char, int>());
+	Action.push_back(unordered_map<char, pair<action, int>>());
 	//根据可用于go的符号选出所有相关项目
 	for (const char& symbol_for_go : symbols_for_go)
 	{
@@ -260,23 +303,25 @@ void PARSER::init_closure()
 			if (element.right_part[char_next_point] == symbol_for_go)
 				I_for_go.push_back(I_Element(element.left_part, element.right_part, char_next_point, element.forward));
 		}
-		go(I_for_go, symbol_for_go);
-		/*
+
+		int res = go(I_for_go, symbol_for_go);
+		//Action的移进
 		if (Terminal.find(symbol_for_go) != Terminal.end())
 		{
-			Action[cur_I][symbol_for_go]= make_pair( action , I_after_go)
+			Action[cur_I][symbol_for_go] = make_pair(push_in, res);
 		}
+		//Goto
 		else if (NonTerminal.find(symbol_for_go) != NonTerminal.end())
 		{
-			Goto[cur_I][symbol_for_go] = I_after_go;
+			Goto[cur_I][symbol_for_go] = res;
 		}
-		*/
+
 	}
 
 }
 
 
-void PARSER::go(vector<I_Element> I_to_cal, char X)
+int PARSER::go(vector<I_Element> I_to_cal, char X)
 {
 	//step1 计算闭包
 	for (int j = 0; j < I_to_cal.size(); j++) {//遍历I_to_cal中所有的项目
@@ -326,10 +371,10 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 			else
 				CNT++;
 		}
-		//与现有闭包重复,返回
+		//与现有闭包重复,返回重复的项目集编号
 		if (CNT == check_unique.size())
 		{
-			return;
+			return i;
 		}
 	}
 
@@ -342,15 +387,29 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 	for (auto element : I_to_push)
 		I_to_cal.push_back(element);
 	I.push_back(I_to_cal);
-	show_this_closure();
-	//计算可用于go的符号
+
+
+	//可用于go的符号集
 	unordered_set<char> symbols_for_go;
 	for (auto element : I[cur_I])
 	{
-		//若.在右部末尾则无法GO
+
 		int char_next_point = element.num + 1;
+		//若.不在右部末尾则加入至可go的符号集
 		if (char_next_point < element.right_part.length())
 			symbols_for_go.insert(element.right_part[char_next_point]);
+		//若.在末尾则计算Action的规约
+		else
+		{
+			if(element.left_part == starter.left_part && element.right_part == starter.right_part)
+				Action[cur_I][element.forward] = make_pair(acc,-1);
+			else
+			{
+				int index = get_Grammar_Rules_index(make_pair(element.left_part, element.right_part));
+				Action[cur_I][element.forward] = make_pair(pop_out, index);
+			}
+			
+		}
 	}
 	//根据可用于go的符号选出所有相关项目
 	for (const char& symbol_for_go : symbols_for_go)
@@ -363,18 +422,21 @@ void PARSER::go(vector<I_Element> I_to_cal, char X)
 				I_for_go.push_back(I_Element(element.left_part, element.right_part, char_next_point, element.forward));
 		}
 
-		go(I_for_go, symbol_for_go);
-		/*
+		int res = go(I_for_go, symbol_for_go);
+		//Action的移进
 		if (Terminal.find(symbol_for_go) != Terminal.end())
 		{
-			Action[cur_I][symbol_for_go]= make_pair( action , I_after_go)
+			Action[cur_I][symbol_for_go] = make_pair(push_in, res);
 		}
+		//Goto
 		else if (NonTerminal.find(symbol_for_go) != NonTerminal.end())
 		{
-			Goto[cur_I][symbol_for_go] = I_after_go;
+			Goto[cur_I][symbol_for_go] = res;
 		}
-		*/
+
 	}
+
+	return cur_I;
 
 }
 
@@ -407,3 +469,10 @@ void PARSER::get_First(const string& str)
 	}
 }
 
+int PARSER::get_Grammar_Rules_index(const pair<string, string>& target)
+{
+	for (int i = 0; i < Grammar_Rules.size(); i++)
+		if (Grammar_Rules[i] == target)
+			return i;
+	return -1;
+}

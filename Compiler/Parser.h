@@ -4,9 +4,10 @@
 #include <sstream>
 #include <iterator>
 #include <unordered_map>
-#include<unordered_set>
+#include <unordered_set>
 #include <algorithm>
 #include <stack>
+#include <iomanip>
 #define OK 1
 #define ERROR -1
 
@@ -61,11 +62,11 @@ private:
 	unordered_set<char>Terminal;			//终结符集
 
 	vector<pair<string, string>> Grammar_Rules;			//Grammar_Rules[i]=pair<starter,beginer> (starter->beginer)
-
 	unordered_map<string, unordered_set<char>> First;			//First[string]= string的First集
 	vector<unordered_map<char, int>> Goto;					//Goto[S][a]= target_status, S=cur_status, a=cur_symbol
+
 	//push_in = 移进 ； pop_out = 规约
-	typedef enum { push_in, pop_out, acc }action;
+	typedef enum { push_in, pop_out, acc}action;
 	vector<unordered_map<char, pair<action, int>>> Action;	//Action[S][a] 获取所要采取的行动
 
 	int I_size;											//项目集个数
@@ -76,7 +77,8 @@ private:
 	void init_First();
 	void init_closure();			//求项目集闭包
 	void get_First(const string& str);					//求字符串str的First集
-	void go(vector<I_Element> I, char X);		//GO(I，X)＝CLOSURE(J) J＝{任何形如A→aX·b的项目| A→a·Xb属于I}
+	int get_Grammar_Rules_index(const pair<string, string> &target);
+	int  go(vector<I_Element> I, char X);		//GO(I，X)＝CLOSURE(J) J＝{任何形如A→aX·b的项目| A→a·Xb属于I}
 	
 	//DEBUG用
 	void show_NonTerminal();
@@ -85,4 +87,5 @@ private:
 	void show_First();
 	void show_closure();
 	void show_this_closure();
+	void show_Action_and_Goto();
 };
