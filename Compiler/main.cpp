@@ -1,17 +1,6 @@
 #include"Lex.h"
 #include"Parser.h"
-#define USE_DEBUG_FILE
-
-#ifndef USE_DEBUG_FILE
-#define SOURCE_CODE "../源代码.txt"
-#define LEX_RESULT ".. /词法分析结果.txt"
-#define GRAMMAR_INPUT "../表达式.txt"
-#else
-#define SOURCE_CODE "../源代码.txt"
-#define LEX_RESULT "../测试用文件/词法分析结果_debug.txt"
-#define GRAMMAR_INPUT "../测试用文件/表达式_debug.txt"
-#endif
-
+#include"utils.h"
 int main()
 {
 	/*
@@ -20,7 +9,11 @@ int main()
 	*/
 	PARSER P;
 	if (P.LR1(GRAMMAR_INPUT, LEX_RESULT))
+	{
 		cout << "acc" << endl;
+		
+		P.output_GrammarTree();
+	}
 	else {
 		cout << "reject" << endl;
 	};

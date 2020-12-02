@@ -6,9 +6,11 @@
 #include <unordered_map>
 #include <map>
 #include <queue>
+#include <stack>
 #include <unordered_set>
 #include <algorithm>
 #include <iomanip>
+#include "utils.h"
 #define OK 1
 #define ERROR -1
 
@@ -51,6 +53,9 @@ class PARSER
 public:
 	PARSER();
 	bool LR1(const string& grammer_in, const string& file_in);
+	void show_GrammarTree();
+	void output_GrammarTree();
+
 private:
 	ifstream infile;						//输入文件
 	ofstream outfile;						//输出文件
@@ -59,7 +64,7 @@ private:
 	int InputString_idx = 0;				//首个未处理的输入串字符所在位置
 	vector<int> Status;						//状态栈
 	vector<char> Symbol;					//符号栈
-
+	stack<int> GrammarTree;
 	unordered_set<char>NonTerminal;			//非终结符集
 	unordered_set<char>Terminal;			//终结符集
 
@@ -68,7 +73,7 @@ private:
 	vector<unordered_map<char, int>> Goto;					//Goto[S][a]= target_status, S=cur_status, a=cur_symbol
 
 	//push_in = 移进 ； pop_out = 规约
-	typedef enum { push_in, pop_out, acc}action;
+	typedef enum { push_in=1, pop_out=2, acc=3}action;
 	vector<unordered_map<char, pair<action, int>>> Action;	//Action[S][a] 获取所要采取的行动
 
 	int I_size;											//项目集个数
@@ -87,6 +92,7 @@ private:
 	void show_NonTerminal();
 	void show_Terminal();
 	void show_Grammer_Rules();
+	void show_this_Grammar_Rules(const int& index);
 	void show_First();
 	void show_closure();
 	void show_this_closure();
@@ -95,4 +101,5 @@ private:
 	void show_Symbol();
 	void show_Status();
 	void show_InputString();
+	void output_this_analysis_step();
 };

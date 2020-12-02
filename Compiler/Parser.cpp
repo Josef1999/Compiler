@@ -1,5 +1,5 @@
 #include"Parser.h"
-#define DEBUG_MODE
+//#define DEBUG_MODE
 const I_Element starter("Z", "S");
 PARSER::PARSER()
 {
@@ -80,7 +80,7 @@ void PARSER::show_closure()
 void PARSER::show_this_analysis_step()
 {
 	static int step = 0;
-	cout <<"step:"<< setw(4) << step<<endl;
+	cout << "step:" << setw(4) << step << endl;
 	show_Status();
 	show_Symbol();
 	show_InputString();
@@ -124,7 +124,7 @@ void PARSER::show_Action_and_Goto()
 					cout << "s" << setw(4) << Action[i][ch].second;
 					break;
 				case pop_out:
-					cout << "r" << setw(4) << Action[i][ch].second+1;
+					cout << "r" << setw(4) << Action[i][ch].second + 1;
 					break;
 				}
 			else
@@ -135,7 +135,7 @@ void PARSER::show_Action_and_Goto()
 			else
 				cout << setw(4) << ' ';
 		cout << endl;
-			
+
 	}
 }
 void PARSER::show_this_closure()
@@ -162,12 +162,29 @@ void PARSER::show_InputString()
 	cout << "InputString：";
 	cout << InputString.substr(InputString_idx) << endl;
 }
+void PARSER::show_this_Grammar_Rules(const int& index)
+{
+	auto element = Grammar_Rules[index];
+	cout << element.first << "->" << element.second << endl;
+}
+void PARSER::show_GrammarTree()
+{
+	cout << "最右推导语法树：" << endl;
+	auto S = GrammarTree;
+	while (!S.empty())
+	{
+		int& index = S.top();
+		show_this_Grammar_Rules(index);
+		S.pop();
+	}
+	cout << endl;
+}
 bool PARSER::LR1(const string& grammer_in, const string& file_name)
 {
 	init(grammer_in);
 	analysis_init(file_name);
 	return analysis();
-	
+
 }
 void PARSER::init(const string& grammer_in)
 {
@@ -265,7 +282,7 @@ EXTEND_FIRST:
 	else
 	{
 		//FIRST集是否增大
-		if(!equal(First.begin(),First.end(),pre_First.begin()))
+		if (!equal(First.begin(), First.end(), pre_First.begin()))
 			goto EXTEND_FIRST;
 		/*auto element = First.begin();
 		for (auto pre_element : pre_First)
@@ -433,14 +450,14 @@ int PARSER::go(vector<I_Element> I_to_cal, char X)
 		//若.在末尾则计算Action的规约
 		else
 		{
-			if(element.left_part == starter.left_part && element.right_part == starter.right_part)
-				Action[cur_I][element.forward] = make_pair(acc,-1);
+			if (element.left_part == starter.left_part && element.right_part == starter.right_part)
+				Action[cur_I][element.forward] = make_pair(acc, -1);
 			else
 			{
 				int index = get_Grammar_Rules_index(make_pair(element.left_part, element.right_part));
 				Action[cur_I][element.forward] = make_pair(pop_out, index);
 			}
-			
+
 		}
 	}
 	//根据可用于go的符号选出所有相关项目
@@ -524,7 +541,7 @@ void PARSER::analysis_init(const string& file_name)
 	//输入串初始化
 	{
 		char ch;
-		
+
 		while (infile >> ch)
 			InputString.push_back(ch);
 		InputString.push_back('#');
@@ -533,35 +550,109 @@ void PARSER::analysis_init(const string& file_name)
 }
 bool PARSER::analysis()
 {
-	
+	outfile.open(PARSER_PROCESS, ios::trunc | ios::out);
+	if (!outfile.is_open())
+	{
+		cout << "语法分析过程输出文件打开失败" << endl;
+		exit(-1);
+	}
 	while (1) {
+#ifdef DEBUG_MODE
 		show_this_analysis_step();
 		show_Grammer_Rules();
+#endif
+#ifdef PARSER_PROCESS
+		output_this_analysis_step();
+#endif
+
 		int cur_status = Status.back();
-		char cur_input_symbol=InputString[InputString_idx];//当前分析符号
+		char cur_input_symbol = InputString[InputString_idx];//当前分析符号
 		int size;
+
+		int& index = Action[cur_status][cur_input_symbol].second;
 		switch (Action[cur_status][cur_input_symbol].first)
 		{
-			case push_in:
-				Status.push_back(Action[cur_status][cur_input_symbol].second);				//移进状态
-				Symbol.push_back(cur_input_symbol);											//移进符号
-				InputString_idx++;															//字符串
-				break;
-			case pop_out:
-				size=Grammar_Rules[Action[cur_status][cur_input_symbol].second].second.size();		//规约语法右部符号个数
-				for (int i = 1; i <= size; i++) {
-					Symbol.pop_back();		
-					Status.pop_back();
-				}
-				Symbol.push_back(Grammar_Rules[Action[cur_status][cur_input_symbol].second].first[0]);		//规约左部
-				Status.push_back(Goto[Status.back()][Grammar_Rules[Action[cur_status][cur_input_symbol].second].first[0]]);//规约之后进行符号栈的更新
-				break;
-			case acc:
-				return true;
-				break;
-			default:
-				break;
+		case push_in:
+			Status.push_back(Action[cur_status][cur_input_symbol].second);				//移进状态
+			Symbol.push_back(cur_input_symbol);											//移进符号
+			InputString_idx++;															//字符串
+			break;
+		case pop_out:
+			size = Grammar_Rules[Action[cur_status][cur_input_symbol].second].second.size();		//规约语法右部符号个数
+			for (int i = 1; i <= size; i++) {
+				Symbol.pop_back();
+				Status.pop_back();
+			}
+			GrammarTree.push(index);
+			Symbol.push_back(Grammar_Rules[index].first[0]);		//规约左部
+			Status.push_back(Goto[Status.back()][Grammar_Rules[index].first[0]]);//规约之后进行符号栈的更新
+			break;
+		case acc:
+			outfile << "acc" << endl;
+			return true;
+			break;
+		default:
+			outfile << "reject" << endl;
+			return false;
+			break;
 		}
 	}
 	return true;
+}
+
+void PARSER::output_GrammarTree()
+{
+	ofstream out(PARSER_TREE, ios::trunc | ios::out);
+	if (!out.is_open())
+	{
+		cout << "语法树输出文件打开失败" << endl;
+		exit(-1);
+	}
+	auto& S = GrammarTree;
+	out << "最右推导语法分析树：" << endl;
+	while (!S.empty())
+	{
+		int& index = S.top();
+		auto element = Grammar_Rules[index];
+		out << element.first << "->" << element.second << endl;
+		S.pop();
+	}
+	out.close();
+	return;
+}
+void PARSER::output_this_analysis_step()
+{
+	static int step = 0;
+	auto& out = outfile;
+
+	//步骤数
+	{
+		out << "第" << step << "步：" << endl;
+	}
+	//状态栈
+	{
+		stringstream status_str;
+		for (auto element : this->Status)
+			status_str << element << '|';
+		string output = status_str.str();
+		output.pop_back();
+		out << "状态栈：" << output << endl;
+	}
+	//符号栈
+	{
+		stringstream status_str;
+		for (auto element : this->Symbol)
+			status_str << element;
+		out << "符号栈：" << status_str.str() << endl;
+	}
+	//输入串
+	{
+		out << "输入串：" << InputString.substr(InputString_idx) << endl;
+	}
+	//空行
+	{
+		out << endl;
+	}
+	
+	step++;
 }
