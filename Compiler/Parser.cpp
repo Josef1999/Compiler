@@ -1,6 +1,7 @@
 #include"Parser.h"
 //#define DEBUG_MODE
 const I_Element starter("Z", "S");
+
 PARSER::PARSER()
 {
 	I_size = 0;
@@ -541,11 +542,11 @@ void PARSER::analysis_init(const string& file_name)
 }
 bool PARSER::analysis()
 {
-	show_closure();
 	while (1) {
 #ifdef DEBUG_MODE
 		show_this_analysis_step();
-		//show_Grammer_Rules();
+		show_Grammer_Rules();
+#endif
 		int cur_status = Status.back();
 		char cur_input_symbol = InputString[InputString_idx];//µ±Ç°·ÖÎö·ûºÅ
 		int size;
@@ -640,8 +641,9 @@ void PARSER::output_this_analysis_step()
 	{
 		out << endl;
 	}
-	
+
 	step++;
+}
 void PARSER::Lex_to_Parser(const string& file_name)
 {
 	unordered_map<string, char> Lex_translate = {
@@ -728,5 +730,4 @@ void PARSER::Lex_to_Parser(const string& file_name)
 			InputString.push_back(Lex_translate[first_part]);
 		}
 	}
-	cout << InputString;
 }

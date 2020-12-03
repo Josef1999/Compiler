@@ -416,11 +416,13 @@ Status LEX::analyse(const string& infile_name, const string& outfile_name)
 	infile.open(infile_name, ios::in);
 	outfile.open(outfile_name, ios::out);
 	if (infile.is_open() == 0) {
-		return -1;//状态
+		cout << "源代码文件打开失败" << endl;
+		exit(-1);
 	}
 	if (outfile.is_open() == 0) {
 		infile.close();
-		return -2;//状态
+		cout << "词法分析结果文件打开失败" << endl;
+		exit(-1);
 	}
 	bufferScanner();//输入缓冲区
 	/*输出表*/
