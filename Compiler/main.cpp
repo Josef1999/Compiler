@@ -8,16 +8,16 @@
 #define GRAMMAR_INPUT "../表达式.txt"
 #else
 #define SOURCE_CODE "../源代码.txt"
-#define LEX_RESULT "../测试用文件/词法分析结果_debug.txt"
-#define GRAMMAR_INPUT "../测试用文件/表达式_debug.txt"
+#define LEX_RESULT "../测试用文件/词法分析结果_test_debug.txt"
+#define GRAMMAR_INPUT "../表达式.txt"
 #endif
 
 int main()
 {
-	/*
+	
 	LEX L;
 	L.analyse(SOURCE_CODE, LEX_RESULT);
-	*/
+	
 	PARSER P;
 	if (P.LR1(GRAMMAR_INPUT, LEX_RESULT))
 		cout << "acc" << endl;

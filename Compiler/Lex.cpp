@@ -11,11 +11,9 @@
 ***************************************************************************/
 void LEX::read_file_to_str(string& str)
 {
-	//ifstream in(file_name);
 	ostringstream tmp;
 	tmp << infile.rdbuf();
 	str = tmp.str();
-	//测试用 std::cout << str;	
 }
 
 
@@ -64,18 +62,12 @@ Status LEX::strPrint(const string& type, const string& value)
 			Stable[value] = id_code;
 			id_code++;
 		}
-
 		outfile << "<" << s << "," << Stable[value] << ">" << endl;
-
-		//outfile << "<" << s << "," << id_code << ">" << endl;
-		//cout << "<" << s << "," << Stable[value] << ">" << endl;
-
 		return OK;
 	}
 	else {
 		outfile << "<" << s << "," << value << ">" << endl;
 	}
-	//cout << "<" << s << "," << value << ">" << endl;
 	return OK;
 }
 
@@ -107,17 +99,16 @@ Status LEX::unaryPrint(const char& ch, const string& type)
 		unary_code = '1';
 		break;
 	case '<':
-		unary_code = '0';
+		unary_code = '4';
 		break;
 	case '>':
-		unary_code = '4';
+		unary_code = '5';
 		break;
 	default:
 		unary_code = '-';
 		break;
 	}
 	outfile << "<" << type << "," << unary_code << ">" << endl;
-	//cout << "<" << type << "," << unary_code << ">" << endl;
 	return OK;
 }
 
@@ -215,14 +206,17 @@ Status LEX::Delcomment()
 Status LEX::Number()
 {
 	int begin = idx;//注释开始位置
-	idx++;
-	while (file_str[idx]) {
+	while (idx < file_str.size()) {
 		if (isdigit(file_str[idx])) {
 			idx++;
 		}
 		else {
 			string tmp = file_str.substr(begin, idx - begin);
 			idx--;					//读到非数字后退
+			return strPrint("NUM", tmp);
+		}
+		if (idx >= file_str.size()) {
+			string tmp = file_str.substr(begin, idx - begin);
 			return strPrint("NUM", tmp);
 		}
 	}
@@ -243,8 +237,7 @@ Status LEX::Operator()
 		return 0;					//符号出错
 	}
 	char ch = search->first;		//只有第一次有用，用来处理+-*/;,(){}这些符号
-	while (file_str[idx]) {
-		//search = UnaryOP.find(file_str[idx]); 	
+	while (idx < file_str.size()) {	
 		if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == ';' || ch == ','
 			|| ch == '(' || ch == ')' || ch == '{' || ch == '}') {
 			//state = 1;
@@ -252,7 +245,6 @@ Status LEX::Operator()
 		}
 		else {
 			ch = file_str[idx];					//非上述符号，第二种情况
-			//int begin = idx;
 			switch (state)
 			{
 			case 0:
@@ -315,7 +307,19 @@ Status LEX::Operator()
 			}
 		}
 		idx++;
+		if (idx == file_str.size()) {
+			if (state == 2) {
+				return unaryPrint('<', "RELOP");
+			}
+			else if (state == 4) {
+				return unaryPrint('>', "RELOP");
+			}
+			else if (state == 6) {
+				return unaryPrint('=', "ASSIGN");
+			}
+		}
 	}
+
 	return OK;
 }
 
@@ -330,8 +334,7 @@ Status LEX::Identifier()
 {
 	int begin = idx;//标识符开头
 	string temp;//记录标识符
-	idx++;//开头已经是字母或者下划线
-	while (file_str[idx]) {
+	while (idx < file_str.size()) {
 		if (isLiter(file_str[idx]) || isdigit(file_str[idx])) {//字母、下划线、数字
 			idx++;
 		}
@@ -361,7 +364,7 @@ Status LEX::Identifier()
 Status LEX::bufferScanner()
 {
 	read_file_to_str(file_str);
-	while (file_str[idx] && !state) {		//字符串未结束并且DFA是开始状态
+	while (idx < file_str.size() && !state) {		//字符串未结束并且DFA是开始状态
 		if (file_str[idx] == ' ' || file_str[idx] == '\t' || file_str[idx] == '\r') {
 			;//空格、TAB、回车，不做处理跳过。
 		}
@@ -422,10 +425,10 @@ Status LEX::analyse(const string& infile_name, const string& outfile_name)
 	bufferScanner();//输入缓冲区
 	/*输出表*/
 
-	outfile << endl;
+	/*outfile << endl;
 	for (auto search = Stable.begin(); search != Stable.end(); search++) {
 		outfile << "<" << search->first << "," << search->second << ">" << endl;
-	}
+	}*/
 	infile.close();
 	outfile.close();
 	return OK;			//返回终态

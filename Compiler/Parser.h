@@ -62,13 +62,13 @@ private:
 
 	unordered_set<char>NonTerminal;			//非终结符集
 	unordered_set<char>Terminal;			//终结符集
-
+	
 	vector<pair<string, string>> Grammar_Rules;			//Grammar_Rules[i]=pair<starter,beginer> (starter->beginer)
 	map<string, unordered_set<char>> First;			//First[string]= string的First集
 	vector<unordered_map<char, int>> Goto;					//Goto[S][a]= target_status, S=cur_status, a=cur_symbol
 
 	//push_in = 移进 ； pop_out = 规约
-	typedef enum { push_in, pop_out, acc}action;
+	typedef enum { push_in=1, pop_out=2, acc=3}action;
 	vector<unordered_map<char, pair<action, int>>> Action;	//Action[S][a] 获取所要采取的行动
 
 	int I_size;											//项目集个数
@@ -83,6 +83,7 @@ private:
 	int  go(vector<I_Element> I, char X);		//GO(I，X)＝CLOSURE(J) J＝{任何形如A→aX·b的项目| A→a·Xb属于I}
 	bool analysis();
 	void analysis_init(const string& file_name);
+	void Lex_to_Parser(const string& file_name);			//Lex输出转为Parser可读
 	//DEBUG用
 	void show_NonTerminal();
 	void show_Terminal();

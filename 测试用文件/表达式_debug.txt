@@ -1,4 +1,4 @@
-a b #
-S>BB
-B>aB
+b # $
+S>B
 B>b
+B>$
