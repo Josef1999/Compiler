@@ -659,7 +659,7 @@ void PARSER::Lex_to_Parser(const string& file_name)
 		{"LP",'a'},{"RP",'b'},{"INT",'c'},{"VOID",'d'},
 		{"LB",'e'},{"RB",'f'},{"DEL",'g'},{"RETURN",'h'},
 		{"WHILE",'i'},//{"RELOP",'-'},{"OP1",'-'},{"OP2",'-'},
-		{"SEP",'t'},{"ID",'u'},{"NUM",'v'} ,{"ASSIGN",'w'},{"IF",'x'}
+		{"SEP",'t'},{"ID",'u'},{"NUM",'v'} ,{"ASSIGN",'w'},{"IF",'x'},{"ELSE",'y'}
 	};
 	infile.clear();
 	infile.open(file_name);

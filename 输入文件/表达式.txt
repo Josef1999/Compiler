@@ -1,4 +1,4 @@
-a b c d e f g h i j k l m n o p q r s t u v w x # $
+a b c d e f g h i j k l m n o p q r s t u v w x y # $
 S>ABabC
 A>c
 A>d
@@ -12,19 +12,22 @@ E>$
 G>H
 G>I
 G>J
-G>k
+G>K
 H>BwLg
 I>hg
-I>hvg
+I>hLg
 J>iaLbC
-K>xaLbC
-L>M
-L>MjM
-L>MkM
-L>MlM
-L>MmM
-L>MnM
-L>MoM
+K>xaLbCT
+T>$
+T>yC
+L>MP
+P>$
+P>jMP
+P>kMP
+P>lMP
+P>mMP
+P>nMP
+P>oMP
 M>NQ
 Q>pNQ
 Q>qNQ
