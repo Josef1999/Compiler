@@ -1,40 +1,40 @@
-<INT,0>
-<ID,0>
-<LP,->
-<RP,->
+<INT,0>  c
+<ID,0>	u
+<LP,->  a
+<RP,->  b
 <NL,->
-<LB,->
+<LB,-> e
 <NL,->
 <NL,->
 <NL,->
-<INT,0>
-<ID,1>
-<SEP,->
-<ID,2>
-<DEL,->
+<INT,0> c
+<ID,1> u
+<SEP,->t
+<ID,2> u
+<DEL,-> g
 <NL,->
-<ID,1>
-<ASSIGN,->
-<NUM,0>
-<DEL,->
+<ID,1> u
+<ASSIGN,-> w
+<NUM,0> v
+<DEL,-> g
 <NL,->
-<ID,2>
-<ASSIGN,->
-<NUM,1>
-<DEL,->
+<ID,2> u
+<ASSIGN,-> w
+<NUM,1> v
+<DEL,-> g
 <NL,->
-<ID,1>
-<ASSIGN,->
-<ID,1>
-<OP1,0>
-<ID,2>
-<DEL,->
+<ID,1> u
+<ASSIGN,-> w
+<ID,1> u
+<OP1,0>p
+<ID,2> u
+<DEL,->g
 <NL,->
-<RETURN,5>
-<NUM,0>
-<DEL,->
+<RETURN,5>h
+<NUM,0>v
+<DEL,->g
 <NL,->
-<RB,->
+<RB,->f
 
 <main,0>
 <a,1>

@@ -27,34 +27,15 @@ private:
 	int state;					//状态
 	unordered_map<string, int> Stable;		//标识符表
 	unordered_map<char, string> UnaryOP =
-	{ {'+',"OP1"},{'-',"OP1"},{'*',"OP2"},{'/',"OP2"},{'<',"RELOP"},{'>',"RELOP"},{'=',"ASSIGN"},{';',"DEL"},{',',"SEP"},{'(',"LP"},{')',"RP"},{'{',"LB"},{'}',"RB"}, {'!',"RELOP"} };				//一元算符表
-	//{ '+','-','*','/','<','>','=',';',',','(',')','{','}', '!' };			
+	{ {'+',"OP1"},{'-',"OP1"},{'*',"OP2"},{'/',"OP2"},{'<',"RELOP"},{'>',"RELOP"},{'=',"ASSIGN"},{';',"DEL"},{',',"SEP"},{'(',"LP"},{')',"RP"},{'{',"LB"},{'}',"RB"}, {'!',"RELOP"} };				//一元算符表		
 	unordered_map<string, string> ReserveWord =
 	{ {"int","0"}, {"void","1"}, {"while","2"}, {"if","3"}, {"else","4"}, {"return","5"} };		//保留字表
-	//{ {"int",0}, {"void",1}, {"while",2}, {"if",3}, {"else",4}, {"return",5} }
 	unordered_map<string, string> strOP =
-	{ {"<=","0"},{"!=","1"},{"==","2"},{">=","3"} };			//字符运算符表
-/*	typedef enum {
-		INT,								//0
-		VOID,								//1
-		ID,									//2
-		LP,									//3
-		LP,									//4
-		RP,									//5
-		LB,									//6
-		WHILE,								//7
-		IF,									//8
-		ELSE,								//9
-		RETURN,								//10
-		ASSIGN,								//11
-		OP1,								//12
-		OP2,								//13
-		RELOP,								//14
-		DEL,								//15
-		SEP,								//16
-		NUM,								//17
-		NL									//18
-	}tokenType;				//记号类型*/
+	{ {"<=","0"},{"!=","1"},{"==","2"},{">=","3"} };			//字符运算符表	
+	
+	//(<,4)(>,5)
+	
+
 
 	/**************************成员函数***************************/
 	void read_file_to_str(string& str);//文件读取到字符串

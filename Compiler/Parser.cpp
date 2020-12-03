@@ -102,40 +102,41 @@ void PARSER::show_Status()
 }
 void PARSER::show_Action_and_Goto()
 {
-	cout << setw(4) << setiosflags(ios::left) << "状态" << setw(8) << "Action" << setw(8) << "Goto" << endl;
-	cout << setw(4) << ' ';
+	ofstream out("../Action_Goto表.txt");
+	out << setw(4) << setiosflags(ios::left) << "状态" << setw(8) << "Action" << setw(8) << "Goto" << endl;
+	out << setw(4) << ' ';
 	for (auto ch : Terminal)
-		cout << setw(4) << ch;
+		out << setw(4) << ch;
 	for (auto ch : NonTerminal)
-		cout << setw(4) << ch;
-	cout << endl;
+		out << setw(4) << ch;
+	out << endl;
 
 	for (int i = 0; i < Action.size(); i++)
 	{
-		cout << setw(4) << i;
+		out << setw(4) << i;
 		for (auto ch : Terminal)
 			if (Action[i].find(ch) != Action[i].end())
 				switch (Action[i][ch].first)
 				{
 				case acc:
-					cout << setw(4) << "acc";
+					out << setw(4) << "acc";
 					break;
 				case push_in:
-					cout << "s" << setw(4) << Action[i][ch].second;
+					out << "s" << setw(4) << Action[i][ch].second;
 					break;
 				case pop_out:
-					cout << "r" << setw(4) << Action[i][ch].second + 1;
+					out << "r" << setw(4) << Action[i][ch].second+1;
 					break;
 				}
 			else
-				cout << setw(4) << ' ';
+				out << setw(4) << ' ';
 		for (auto ch : NonTerminal)
 			if (Goto[i].find(ch) != Goto[i].end())
-				cout << setw(4) << Goto[i][ch];
+				out << setw(4) << Goto[i][ch];
 			else
-				cout << setw(4) << ' ';
-		cout << endl;
-
+				out << setw(4) << ' ';
+		out << endl;
+			
 	}
 }
 void PARSER::show_this_closure()
@@ -310,15 +311,18 @@ void PARSER::init_table()
 				if (Rules.first == Char_To_String) {			//判断是否是产生式左部
 					//B->beta,First(forward_str)判断是否重复，目前先不做
 					//非重复则加入
+					
 
 					string forward_str;						//存k之后的子串和I[i][j].forward的连接
 					forward_str = I[0][j].right_part.substr(k + 1) + I[0][j].forward;
 					get_First(forward_str);									//求First集作为新项目集的展望
-
+					//查重
+					unordered_set<I_Element, I_ElementHash, I_ElementCmp> check_unique(I[0].begin(), I[0].end());
 					I_Element new_Element(Rules.first, Rules.second);
 					for (auto First_In_Forward : First[forward_str]) {	//展望不同属于不同的项目集
 						new_Element.forward = First_In_Forward;
-						I[0].push_back(new_Element);
+						if(check_unique.find(new_Element)==check_unique.end())		
+							I[0].push_back(new_Element);
 					}
 				}
 
@@ -386,10 +390,12 @@ int PARSER::go(vector<I_Element> I_to_cal, char X)
 					forward_str = I_to_cal[j].right_part.substr(k + 1) + I_to_cal[j].forward;
 					get_First(forward_str);									//求First集作为新项目集的展望
 
+					unordered_set<I_Element, I_ElementHash, I_ElementCmp> check_unique(I_to_cal.begin(), I_to_cal.end());
 					I_Element new_Element(Rules.first, Rules.second);
 					for (auto First_In_Forward : First[forward_str]) {	//展望不同属于不同的项目集
 						new_Element.forward = First_In_Forward;
-						I_to_cal.push_back(new_Element);
+						if(check_unique.find(new_Element) == check_unique.end())
+							I_to_cal.push_back(new_Element);
 					}
 				}
 
@@ -456,6 +462,7 @@ int PARSER::go(vector<I_Element> I_to_cal, char X)
 			{
 				int index = get_Grammar_Rules_index(make_pair(element.left_part, element.right_part));
 				Action[cur_I][element.forward] = make_pair(pop_out, index);
+
 			}
 
 		}
@@ -526,75 +533,55 @@ int PARSER::get_Grammar_Rules_index(const pair<string, string>& target)
 }
 void PARSER::analysis_init(const string& file_name)
 {
-	infile.clear();
-	infile.open(file_name);
-	if (!infile.is_open())
-	{
-		cout << "待分析文件打开失败" << endl;
-		exit(1);
-	}
-
+	Lex_to_Parser(file_name);
+	InputString.push_back('#');
 	//符号栈、状态栈初始化
 	Status.push_back(0);
 	Symbol.push_back('#');
-
-	//输入串初始化
-	{
-		char ch;
-
-		while (infile >> ch)
-			InputString.push_back(ch);
-		InputString.push_back('#');
-	}
-
 }
 bool PARSER::analysis()
 {
-	outfile.open(PARSER_PROCESS, ios::trunc | ios::out);
-	if (!outfile.is_open())
-	{
-		cout << "语法分析过程输出文件打开失败" << endl;
-		exit(-1);
-	}
+	show_closure();
 	while (1) {
 #ifdef DEBUG_MODE
 		show_this_analysis_step();
-		show_Grammer_Rules();
-#endif
-#ifdef PARSER_PROCESS
-		output_this_analysis_step();
-#endif
-
+		//show_Grammer_Rules();
 		int cur_status = Status.back();
 		char cur_input_symbol = InputString[InputString_idx];//当前分析符号
 		int size;
 
-		int& index = Action[cur_status][cur_input_symbol].second;
+			
 		switch (Action[cur_status][cur_input_symbol].first)
 		{
-		case push_in:
-			Status.push_back(Action[cur_status][cur_input_symbol].second);				//移进状态
-			Symbol.push_back(cur_input_symbol);											//移进符号
-			InputString_idx++;															//字符串
-			break;
-		case pop_out:
-			size = Grammar_Rules[Action[cur_status][cur_input_symbol].second].second.size();		//规约语法右部符号个数
-			for (int i = 1; i <= size; i++) {
-				Symbol.pop_back();
-				Status.pop_back();
-			}
-			GrammarTree.push(index);
-			Symbol.push_back(Grammar_Rules[index].first[0]);		//规约左部
-			Status.push_back(Goto[Status.back()][Grammar_Rules[index].first[0]]);//规约之后进行符号栈的更新
-			break;
-		case acc:
-			outfile << "acc" << endl;
-			return true;
-			break;
-		default:
-			outfile << "reject" << endl;
-			return false;
-			break;
+			case push_in:
+				if (Status.back() == '$')
+					Status.pop_back();
+				Status.push_back(Action[cur_status][cur_input_symbol].second);				//移进状态
+				if (cur_input_symbol!='$')
+					Symbol.push_back(cur_input_symbol);											//移进符号
+				InputString_idx++;															//字符串
+				break;
+			case pop_out:
+				size=Grammar_Rules[Action[cur_status][cur_input_symbol].second].second.size();		//规约语法右部符号个数
+				for (int i = 1; i <= size; i++) {
+					Symbol.pop_back();		
+					Status.pop_back();
+				}
+				Symbol.push_back(Grammar_Rules[Action[cur_status][cur_input_symbol].second].first[0]);		//规约左部
+				Status.push_back(Goto[Status.back()][Grammar_Rules[Action[cur_status][cur_input_symbol].second].first[0]]);//规约之后进行符号栈的更新
+				break;
+			case acc:
+				return true;
+				break;
+			default:
+				if (Symbol.back() != '$') {
+					InputString[--InputString_idx] = '$';
+					Symbol.push_back('$');
+				}
+				else {
+					return false;
+				}
+				break;
 		}
 	}
 	return true;
@@ -655,4 +642,91 @@ void PARSER::output_this_analysis_step()
 	}
 	
 	step++;
+void PARSER::Lex_to_Parser(const string& file_name)
+{
+	unordered_map<string, char> Lex_translate = {
+		{"LP",'a'},{"RP",'b'},{"INT",'c'},{"VOID",'d'},
+		{"LB",'e'},{"RB",'f'},{"DEL",'g'},{"RETURN",'h'},
+		{"WHILE",'i'},//{"RELOP",'-'},{"OP1",'-'},{"OP2",'-'},
+		{"SEP",'t'},{"ID",'u'},{"NUM",'v'} ,{"ASSIGN",'w'},{"IF",'x'}
+	};
+	infile.clear();
+	infile.open(file_name);
+	if (!infile.is_open()) {
+		cout << "Lex输出结果文件打开失败" << endl;
+		exit(1);
+	}
+	string line;
+	int start, mid,end;
+	while (!infile.eof()) {
+		getline(infile, line);
+		if (line == "") {
+			break;
+		}
+		start = line.find('<');
+		mid = line.find(',');
+		end = line.find('>');
+		string first_part = line.substr(start + 1, mid - start - 1);
+		string second_part = line.substr(mid + 1, end - mid - 1);
+		int type = atoi(second_part.c_str());			//RELOP,OP1,OP2集合的内部符号的种类判断
+		if (first_part == "RELOP") {
+			switch (type)
+			{
+				//"<=","0"},{"!=","1"},{"==","2"},{">=","3" (<,4)(>,5)
+				case 0:
+					InputString.push_back('k');
+					break;
+				case 1:
+					InputString.push_back('o');
+					break;
+				case 2:
+					InputString.push_back('n');
+					break;
+				case 3:
+					InputString.push_back('m');
+					break;
+				case 4:
+					InputString.push_back('j');
+					break;
+				case 5:
+					InputString.push_back('l');
+					break;
+				default:
+					break;
+			}
+		}
+		else if (first_part == "OP1") {
+			switch (type)
+			{
+				case 0:
+					InputString.push_back('p');
+					break;
+				case 1:
+					InputString.push_back('q');
+					break;
+				default:
+					break;
+			}
+		}
+		else if (first_part == "OP2") {
+			switch (type)
+			{
+				case 0:
+					InputString.push_back('r');
+					break;
+				case 1:
+					InputString.push_back('s');
+					break;
+				default:
+					break;
+			}
+		}
+		else if (first_part == "NL") {
+			;
+		}
+		else {
+			InputString.push_back(Lex_translate[first_part]);
+		}
+	}
+	cout << InputString;
 }
