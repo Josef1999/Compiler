@@ -542,15 +542,20 @@ void PARSER::analysis_init(const string& file_name)
 }
 bool PARSER::analysis()
 {
+	if (this->outfile.is_open())
+		this->outfile.close();
+	this->outfile.clear();
+	this->outfile.open(PARSER_PROCESS);
 	while (1) {
 #ifdef DEBUG_MODE
 		show_this_analysis_step();
 		show_Grammer_Rules();
 #endif
+		output_this_analysis_step();
 		int cur_status = Status.back();
 		char cur_input_symbol = InputString[InputString_idx];//当前分析符号
 		int size;
-
+		int& index = Action[cur_status][cur_input_symbol].second;
 			
 		switch (Action[cur_status][cur_input_symbol].first)
 		{
@@ -563,15 +568,17 @@ bool PARSER::analysis()
 				InputString_idx++;															//字符串
 				break;
 			case pop_out:
-				size=Grammar_Rules[Action[cur_status][cur_input_symbol].second].second.size();		//规约语法右部符号个数
+				size=Grammar_Rules[index].second.size();		//规约语法右部符号个数
+				GrammarTree.push(index);
 				for (int i = 1; i <= size; i++) {
 					Symbol.pop_back();		
 					Status.pop_back();
 				}
-				Symbol.push_back(Grammar_Rules[Action[cur_status][cur_input_symbol].second].first[0]);		//规约左部
-				Status.push_back(Goto[Status.back()][Grammar_Rules[Action[cur_status][cur_input_symbol].second].first[0]]);//规约之后进行符号栈的更新
+				Symbol.push_back(Grammar_Rules[index].first[0]);		//规约左部
+				Status.push_back(Goto[Status.back()][Grammar_Rules[index].first[0]]);//规约之后进行符号栈的更新
 				break;
 			case acc:
+				this->outfile << "acc" << endl;
 				return true;
 				break;
 			default:
@@ -580,11 +587,13 @@ bool PARSER::analysis()
 					Symbol.push_back('$');
 				}
 				else {
+					this->outfile << "reject" << endl;
 					return false;
 				}
 				break;
 		}
 	}
+	this->outfile << "acc" << endl;
 	return true;
 }
 
