@@ -64,7 +64,7 @@ private:
 	int InputString_idx = 0;				//首个未处理的输入串字符所在位置
 	vector<int> Status;						//状态栈
 	vector<char> Symbol;					//符号栈
-	stack<int> GrammarTree;
+	stack<int> GrammarTree;					//语法树
 	unordered_set<char>NonTerminal;			//非终结符集
 	unordered_set<char>Terminal;			//终结符集
 	
@@ -77,7 +77,7 @@ private:
 	vector<unordered_map<char, pair<action, int>>> Action;	//Action[S][a] 获取所要采取的行动
 
 	int I_size;											//项目集个数
-	vector<vector<I_Element>> I;						//项目集
+	vector<vector<I_Element>> I;						//项目簇
 	void init(const string& grammer_in);				//初始化Goto、Action、Grammer_Rules、First、Terminal、NonTerminal
 	void init_Terminal();
 	void init_NonTerminal();

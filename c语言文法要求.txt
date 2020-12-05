@@ -55,7 +55,7 @@ while= i
 * = r
 / = s
 , = t
-字母 = u
+id = u
 数字 = v
 = = w
 if = x
