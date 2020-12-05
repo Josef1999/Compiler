@@ -7,8 +7,9 @@ C>eDEf
 D>$
 D>FgD
 F>cB
-E>GE
-E>$
+E>GU
+U>GU
+U>$
 G>H
 G>I
 G>J
