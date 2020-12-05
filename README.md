@@ -4,4 +4,4 @@
 ## 使用
 本项目为Visual Stduio工程，可下载后直接运行
 ## 共同作者
-@sys2001
+[@sys2001] (https://github.com/sys2001)
