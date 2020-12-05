@@ -1,7 +1,7 @@
-# ÀàC´Ê·¨·ÖÎöÆ÷&LR(1)Óï·¨·ÖÎöÆ÷
-## ÏîÄ¿±³¾°
-Í¬¼Ã±àÒëÔ­ÀíÓï·¨·ÖÎöÆ÷´ó×÷Òµ
-## Ê¹ÓÃ
-±¾ÏîÄ¿ÎªVisual Stduio¹¤³Ì£¬¿ÉÏÂÔØºóÖ±½ÓÔËÐÐ
-## ¹²Í¬×÷Õß
-[@sys2001] (https://github.com/sys2001)
+# ç±»Cè¯æ³•åˆ†æžå™¨&LR(1)è¯­æ³•åˆ†æžå™¨
+## é¡¹ç›®èƒŒæ™¯
+åŒæµŽç¼–è¯‘åŽŸç†è¯­æ³•åˆ†æžå™¨å¤§ä½œä¸š
+## ä½¿ç”¨
+æœ¬é¡¹ç›®ä¸ºVisual Stduioå·¥ç¨‹ï¼Œå¯ä¸‹è½½åŽç›´æŽ¥è¿è¡Œ
+## å…±åŒä½œè€…
+[sys2001](https://github.com/sys2001)
